@@ -7,8 +7,8 @@ import CartDrawer from "@/components/CartDrawer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AM MODE — Prêt-à-porter",
-  description: "L'élégance au naturel. Des coupes nettes et des matières confortables pour le quotidien.",
+  title: "TFK Store — Boutique de Vêtements & Accessoires Téléphone",
+  description: "Découvrez notre collection de vêtements modernes et nos accessoires téléphoniques premium. Style et élégance pour tous.",
 };
 
 export default function RootLayout({

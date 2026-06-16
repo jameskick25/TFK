@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(req: NextRequest) {
-  // Uniquement pour les routes /admin
   if (req.nextUrl.pathname.startsWith('/admin')) {
     const authHeader = req.headers.get('authorization');
     
-    // Le mot de passe par défaut est 'ammode2026' (tu pourras le changer plus tard)
-    // base64 de admin:ammode2026 -> YWRtaW46YW1tb2RlMjAyNg==
-    if (!authHeader || authHeader !== 'Basic YWRtaW46YW1tb2RlMjAyNg==') {
+    // Read the password dynamically from environment variables, fallback to 'tfkstore2026'
+    const adminPassword = process.env.ADMIN_PASSWORD || 'tfkstore2026';
+    const expectedAuth = 'Basic ' + Buffer.from(`admin:${adminPassword}`).toString('base64');
+    
+    if (!authHeader || authHeader !== expectedAuth) {
       return new NextResponse('Authentification requise', {
         status: 401,
         headers: {

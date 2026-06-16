@@ -14,7 +14,7 @@ export default function Navbar() {
   const { language, setLanguage } = useLanguage();
   const t = useTranslation(language);
 
-  const isProductPage = pathname?.startsWith('/product/');
+  const isProductPage = pathname?.startsWith('/product/') || pathname?.includes('/product/');
   const headerStyle = isProductPage ? { position: 'relative' as const } : {};
 
   return (
@@ -31,18 +31,17 @@ export default function Navbar() {
         <div className="container navbar-container">
           
           <Link href="/" className="navbar-logo" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/logo.PNG" alt="AM MODE" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-            <span style={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.02em' }}>AM MODE</span>
+            <img src="/logo.jpg" alt="TFK Store" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+            <span style={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.02em' }}>TFK Store</span>
           </Link>
 
           <div className={`navbar-nav ${mobileMenuOpen ? 'open' : ''}`}>
-            <Link href="/" className="nav-link" onClick={() => setMobileMenuOpen(false)}>{t('home')}</Link>
-            <Link href="/catalog" className="nav-link" onClick={() => setMobileMenuOpen(false)}>{t('products')}</Link>
-            <Link href="/about" className="nav-link" onClick={() => setMobileMenuOpen(false)}>{t('about')}</Link>
-            <Link href="/livraison-retours" className="nav-link" onClick={() => setMobileMenuOpen(false)}>{t('delivery_returns')}</Link>
-            <Link href="/guide-des-tailles" className="nav-link" onClick={() => setMobileMenuOpen(false)}>{t('size_guide')}</Link>
-            <Link href="/faq" className="nav-link" onClick={() => setMobileMenuOpen(false)}>{t('faq')}</Link>
-            <Link href="/contact" className="nav-link" onClick={() => setMobileMenuOpen(false)}>{t('contact')}</Link>
+            <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('home')}</Link>
+            <Link href="/clothes" className={`nav-link ${pathname === '/clothes' || pathname?.startsWith('/clothes/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{language === 'ar' ? 'ملابس' : 'Vêtements'}</Link>
+            <Link href="/accessories" className={`nav-link ${pathname === '/accessories' || pathname?.startsWith('/accessories/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{language === 'ar' ? 'إكسسوارات' : 'Accessoires'}</Link>
+            <Link href="/about" className={`nav-link ${pathname === '/about' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('about')}</Link>
+            <Link href="/livraison-retours" className={`nav-link ${pathname === '/livraison-retours' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('delivery_returns')}</Link>
+            <Link href="/contact" className={`nav-link ${pathname === '/contact' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('contact')}</Link>
           </div>
 
           <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -53,7 +52,7 @@ export default function Navbar() {
                 style={{ 
                   padding: '6px 10px', 
                   border: 'none', 
-                  background: language === 'fr' ? '#1a1f36' : 'transparent',
+                  background: language === 'fr' ? 'var(--accent)' : 'transparent',
                   color: language === 'fr' ? '#fff' : '#4b5563',
                   fontWeight: 600,
                   fontSize: '0.85rem',
@@ -67,7 +66,7 @@ export default function Navbar() {
                 style={{ 
                   padding: '6px 10px', 
                   border: 'none', 
-                  background: language === 'ar' ? '#1a1f36' : 'transparent',
+                  background: language === 'ar' ? 'var(--accent)' : 'transparent',
                   color: language === 'ar' ? '#fff' : '#4b5563',
                   fontWeight: 600,
                   fontSize: '0.85rem',

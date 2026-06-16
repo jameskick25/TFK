@@ -10,17 +10,17 @@ export default function Footer() {
   const isAr = language === 'ar';
 
   return (
-    <footer style={{ flexShrink: 0, backgroundColor: '#1a1f36', color: '#f3f4f6', paddingTop: '60px', paddingBottom: '20px', direction: isAr ? 'rtl' : 'ltr' }}>
+    <footer style={{ flexShrink: 0, backgroundColor: 'var(--bg-dark)', color: '#f3f4f6', paddingTop: '60px', paddingBottom: '20px', direction: isAr ? 'rtl' : 'ltr' }}>
       <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '40px' }}>
         
         {/* Brand Column */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <img src="/logo.PNG" alt="AM MODE" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
-            <span style={{ fontWeight: 800, fontSize: '1.6rem', color: '#fff', letterSpacing: '-0.02em' }}>AM MODE</span>
+            <img src="/logo.jpg" alt="TFK Store" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
+            <span style={{ fontWeight: 800, fontSize: '1.6rem', color: '#fff', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>TFK Store</span>
           </div>
           <p style={{ color: '#9ca3af', lineHeight: 1.8, marginBottom: '20px', fontSize: '0.95rem' }}>
-            {isAr ? 'تصميمات عصرية، أقمشة مريحة، لأناقة يومية بدون جهد.' : 'Des coupes nettes, des matières confortables, pour un style quotidien sans effort.'}
+            {isAr ? 'ملابس عصرية وإكسسوارات هواتف مميزة تناسب أسلوب حياتكم.' : 'Vêtements modernes et accessoires de téléphone premium adaptés à votre style de vie.'}
           </p>
         </div>
 
@@ -31,7 +31,8 @@ export default function Footer() {
           </h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <li><Link href="/" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('home')}</Link></li>
-            <li><Link href="/catalog" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('products')}</Link></li>
+            <li><Link href="/clothes" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{isAr ? 'الملابس' : 'Vêtements'}</Link></li>
+            <li><Link href="/accessories" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{isAr ? 'الإكسسوارات' : 'Accessoires'}</Link></li>
             <li><Link href="/livraison-retours" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('delivery_returns')}</Link></li>
             <li><Link href="/faq" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('faq')}</Link></li>
           </ul>
@@ -44,8 +45,8 @@ export default function Footer() {
           </h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', color: '#9ca3af' }}>
             <li><a href="tel:0791995055" style={{ color: '#9ca3af', textDecoration: 'none' }}>📞 07 91 99 50 55</a></li>
-            <li><a href="https://www.instagram.com/am_mode_16?igsh=MWI2bGVwNnZ5azV5eA%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>📸 Instagram</a></li>
-            <li><a href="https://www.facebook.com/share/1CotJm4fa4/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>📘 Facebook</a></li>
+            <li><a href="https://www.instagram.com/tfk_store" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>📸 Instagram</a></li>
+            <li><a href="https://www.facebook.com/tfk_store" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>📘 Facebook</a></li>
             <li><Link href="/contact" style={{ color: '#9ca3af', textDecoration: 'none' }}>✉️ {t('contact')}</Link></li>
           </ul>
         </div>
@@ -56,7 +57,7 @@ export default function Footer() {
         <p style={{ margin: 0, marginBottom: '8px' }}>
           {isAr ? 'التوصيل لجميع الولايات — الدفع عند الاستلام' : 'Livraison dans toutes les wilayas — Paiement à la livraison'}
         </p>
-        <p style={{ margin: 0 }}>© {new Date().getFullYear()} AM MODE. {t('rights')}</p>
+        <p style={{ margin: 0 }}>© {new Date().getFullYear()} TFK Store. {t('rights')}</p>
       </div>
     </footer>
   );

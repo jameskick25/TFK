@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/utils/supabase/server';
 import { createCategory } from '@/app/actions/admin';
 import Link from 'next/link';
+import { getSectionForCategory } from '@/utils/sections';
 
 export default async function CategoriesPage() {
   const supabase = await createAdminClient();
@@ -47,7 +48,12 @@ export default async function CategoriesPage() {
               ) : (
                 categories?.map(cat => (
                   <tr key={cat.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '16px 24px', fontWeight: '500' }}>{cat.name}</td>
+                    <td style={{ padding: '16px 24px', fontWeight: '500' }}>
+                      {cat.name}
+                      <span style={{ fontSize: '0.8rem', marginLeft: '8px', padding: '3px 8px', borderRadius: '12px', backgroundColor: getSectionForCategory(cat.slug) === 'accessories' ? '#ecfdf5' : '#eff6ff', color: getSectionForCategory(cat.slug) === 'accessories' ? '#065f46' : '#1e40af', fontWeight: 'bold' }}>
+                        {getSectionForCategory(cat.slug) === 'accessories' ? '📱 Accessoires' : '👕 Vêtements'}
+                      </span>
+                    </td>
                     <td style={{ padding: '16px 24px', color: '#6b7280' }}>{cat.slug}</td>
                     <td style={{ padding: '16px 24px', textAlign: 'center' }}>
                       <form action={async (formData) => {

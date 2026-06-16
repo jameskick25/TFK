@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createProduct } from '@/app/actions/admin';
 import Link from 'next/link';
+import { getSectionForCategory } from '@/utils/sections';
 
 type SizeVariant = {
   size: string;
@@ -181,7 +182,9 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
             <select name="category_id" required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
               <option value="">Sélectionnez une catégorie</option>
               {categories?.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option key={cat.id} value={cat.id}>
+                  {cat.name} {getSectionForCategory(cat.slug) === 'accessories' ? '📱 (Accessoires)' : '👕 (Vêtements)'}
+                </option>
               ))}
             </select>
           </div>
