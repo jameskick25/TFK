@@ -1,0 +1,730 @@
+{
+  "10": [
+    {
+      "code": "10A",
+      "name": "Bouira",
+      "commune": "Bouira",
+      "address": "Villa hamzaoui, ammar khodja , bouira"
+    },
+    {
+      "code": "10B",
+      "name": "Bouira - Lakhdaria",
+      "commune": "Lakhdaria",
+      "address": "Route national n°05 projet 55 logts social participatif BT A -lakhdaria – bouira (monté tizi elbir à coté de dépôt de vente Semoule MAMA)."
+    }
+  ],
+  "11": [
+    {
+      "code": "11A",
+      "name": "Tamanrasset",
+      "commune": "Tamanghasset",
+      "address": ""
+    }
+  ],
+  "12": [
+    {
+      "code": "12A",
+      "name": "Tébessa",
+      "commune": "Tébessa",
+      "address": "a cote du 2eme commissariat de police et du magasin de meubles REDEL, Tébessa"
+    }
+  ],
+  "13": [
+    {
+      "code": "13A",
+      "name": "Tlemcen",
+      "commune": "Tlemcen",
+      "address": "Les Dhalias 426 El kiffane, tlemcen (La station sera ouverte de 08h30 jusqu'à 18h00.)"
+    },
+    {
+      "code": "13B",
+      "name": "Tlemcen - Maghnia",
+      "commune": "Maghnia",
+      "address": "Ouled ben saber, À côté restaurant Rais"
+    }
+  ],
+  "14": [
+    {
+      "code": "14A",
+      "name": "Tiaret",
+      "commune": "Tiaret",
+      "address": "Cité 180 logements CNT local 01 N° 63 – Tiaret"
+    },
+    {
+      "code": "14B",
+      "name": "Tiaret - Frenda",
+      "commune": "Frenda",
+      "address": "Cité 60 logements D121 GP 82 - Frenda"
+    }
+  ],
+  "15": [
+    {
+      "code": "15A",
+      "name": "Tizi Ouzou",
+      "commune": "Tizi Ouzou",
+      "address": "Cité 450 Logements, Nouvelle Ville enface la salle des fetes lilya"
+    },
+    {
+      "code": "15B",
+      "name": "Tizi Ouzou - Azazga",
+      "commune": "Azazga",
+      "address": "Route nationale N= 12 taddart"
+    },
+    {
+      "code": "15C",
+      "name": "Tizi Ouzou - Draa Ben Khedda",
+      "commune": "Draa Ben Khedd",
+      "address": "cooperative -EL WOOROUD, EN FACE A.D.E et ANEM de draa-ben khedda"
+    }
+  ],
+  "16": [
+    {
+      "code": "16B",
+      "name": "Bab Ezzouar",
+      "commune": "Bab Azzoua",
+      "address": "Devant clinique médicale, En face Ecole Hilal School"
+    },
+    {
+      "code": "16F",
+      "name": "Baba Hassen",
+      "commune": "Baba Hassen",
+      "address": "Cité Cherchali Boualam, À côté de croissant rouge, Baba Hassen"
+    },
+    {
+      "code": "16G",
+      "name": "Baraki",
+      "commune": "Baraki",
+      "address": "Baraki, route de Larbaâ, entre la mosquée El Bachir El Ibrahimi et le commissariat de la circonscription administrative."
+    },
+    {
+      "code": "16Y",
+      "name": "Bir khadem [ E-com ]",
+      "commune": "Bir khadem",
+      "address": "Rue des Rosiers, El Malha Birkhadem"
+    },
+    {
+      "code": "16A",
+      "name": "Bir mourad Rais",
+      "commune": "Bir Mourad Rais",
+      "address": "02, Lotissement Beau Séjour, Bir Mourad Raïs"
+    },
+    {
+      "code": "16H",
+      "name": "Bordj el bahri",
+      "commune": "Bordj El Bahri\"",
+      "address": "Cité Galoul, lotissement coopératif immobilier, n° 428 (A coté de la crèche IBN BAZ )"
+    },
+    {
+      "code": "16E",
+      "name": "Centre - Sacré-Cœur",
+      "commune": "Alger Centre",
+      "address": "22 Rue Hocine BELADJEL, Sacré-Cœur, Alger Centre, (En face la banque BADR)"
+    },
+    {
+      "code": "16X",
+      "name": "Chéraga [ E-com ]",
+      "commune": "Chéraga",
+      "address": "PETIT STAOUALI ROUTE INSTETUE PASTEUR"
+    },
+    {
+      "code": "16W",
+      "name": "Meftah",
+      "commune": "Meftah",
+      "address": "Cite Souakria, Meftah"
+    },
+    {
+      "code": "16Z",
+      "name": "Oued smar [ E-com ]",
+      "commune": "oued smar",
+      "address": "Rue France monic chalis N°01 dar el beida."
+    },
+    {
+      "code": "16D",
+      "name": "Reghaia",
+      "commune": "Reghaia",
+      "address": "822 Logmts LPP Amirouche Batiment A7 N°04 rez-de-chaussée ,Reghaia"
+    },
+    {
+      "code": "16I",
+      "name": "Zeralda",
+      "commune": "Zeralda",
+      "address": "Local N, Cité 62 local LPP BTN 5C, 02 03 RDC, Zéralda"
+    }
+  ],
+  "17": [
+    {
+      "code": "17A",
+      "name": "Djelfa",
+      "commune": "Djelfa",
+      "address": "Centre-ville, en face de la Caisse Nationale des Retraites (C.N.R), Quartier Ben Djerma"
+    },
+    {
+      "code": "17B",
+      "name": "Djelfa - Ain Ouassara",
+      "commune": "Ain Oussera",
+      "address": "Quartier Mohamed Boudiaf, Section 23, Local n° 30 Bisi, Commune de Ain Oussera."
+    }
+  ],
+  "18": [
+    {
+      "code": "18A",
+      "name": "Jijel",
+      "commune": "Jijel",
+      "address": "rue26, Avenue Kaoula Mokhtar, cita sans intérdit , Hay IDARI"
+    }
+  ],
+  "19": [
+    {
+      "code": "19B",
+      "name": "El eulma",
+      "commune": "El Eulma",
+      "address": "Tassahoumi, a coté de transport hamouda et hôtel Rato rue Touaher el khayer et à côté de transport el ikhlas, el eulma, Sétif (La station sera ouverte de 08h30 jusqu’à 18h00.)"
+    },
+    {
+      "code": "19A",
+      "name": "Sétif",
+      "commune": "Setif",
+      "address": "Cité Mesoudi Edhouadi 1014-614 Logement (En face la gare Didouche Mourad)"
+    },
+    {
+      "code": "19C",
+      "name": "Sétif - Ain Oulmene",
+      "commune": "Ain Oulmane",
+      "address": "En face CEM Douhil Abdul Hamid,"
+    }
+  ],
+  "20": [
+    {
+      "code": "20A",
+      "name": "Saïda",
+      "commune": "Saida",
+      "address": "Cité Riad en face Maison de l'Environnement"
+    }
+  ],
+  "21": [
+    {
+      "code": "21A",
+      "name": "Skikda",
+      "commune": "Skikda",
+      "address": "Rue du Chahid Meziane Salah (Route Bouyali, Immeuble Guerza)"
+    },
+    {
+      "code": "21B",
+      "name": "Skikda - Azzaba",
+      "commune": "Azzaba",
+      "address": "Cite mefrouche dahmane"
+    }
+  ],
+  "22": [
+    {
+      "code": "22A",
+      "name": "Sidi bel abbès",
+      "commune": "Sidi Bel Abbes",
+      "address": "Rue CPR , En face Masjid El Ansar"
+    }
+  ],
+  "23": [
+    {
+      "code": "23A",
+      "name": "Annaba",
+      "commune": "Annaba",
+      "address": "Rue Djemila, Saint Claud (À côté de la mosqué Badr)"
+    },
+    {
+      "code": "23B",
+      "name": "Annaba - EL BOUNI",
+      "commune": "El Bouni",
+      "address": "Fractionnement de la Bouni 2, zone urbaine n° 43, rez-de-chaussée, section 40, groupe de propriété 02, Bouni"
+    }
+  ],
+  "24": [
+    {
+      "code": "24A",
+      "name": "Guelma",
+      "commune": "Guelma",
+      "address": "Cité 19 Juin - Numéro 02, en face marché Elbaraka"
+    }
+  ],
+  "25": [
+    {
+      "code": "25C",
+      "name": "Constantine",
+      "commune": "Constantine",
+      "address": "Avenue Kaddour Boumedous (Ciloc) a coté de la direction régionale d’Air Algérie."
+    },
+    {
+      "code": "25B",
+      "name": "Constantine - Ali Mendjeli",
+      "commune": "El Khroub",
+      "address": "En face de Sarl Natura pro Algérie/entre deux salles des fêtés el baraka et méga"
+    },
+    {
+      "code": "25A",
+      "name": "Constantine - Zouaghi",
+      "commune": "Hamma Bouziane",
+      "address": "Cité Tlemcen Zouaghi (En face de la gendarmerie)"
+    }
+  ],
+  "26": [
+    {
+      "code": "26A",
+      "name": "Médéa",
+      "commune": "Medea",
+      "address": "Cité Ennasr (Près du pôle universitaire et Sonelgaz)"
+    }
+  ],
+  "27": [
+    {
+      "code": "27A",
+      "name": "Mostaganem",
+      "commune": "Mostaganem",
+      "address": "La pépinière en face la glacière juste à côté de la libraire BENALIOUA ( cité AKID AMIROUCHE boulevard NAFOUSSI OTHMAN)"
+    },
+    {
+      "code": "27B",
+      "name": "Mostaganem - Sidi lakhder",
+      "commune": "Sidi Lakhdar",
+      "address": "rue si abdelah 01 novembre devant la poste sidi lakhder"
+    }
+  ],
+  "28": [
+    {
+      "code": "28A",
+      "name": "M'sila",
+      "commune": "Msila",
+      "address": "Rue Ichbilia (En face l'université de M'Sila)"
+    },
+    {
+      "code": "28B",
+      "name": "M'sila - Bousaada",
+      "commune": "Bou Saada",
+      "address": "Cité El Bader (ESTTIH) a coté de L'annexe de L'APC ,Bousaada"
+    }
+  ],
+  "29": [
+    {
+      "code": "29A",
+      "name": "Mascara - Mohammadia",
+      "commune": "Mohammadia",
+      "address": "Rue Larbi Ben M'hidi, a coté de l'agence de Barigou,"
+    },
+    {
+      "code": "29B",
+      "name": "Mascara - Ville",
+      "commune": "Mascara",
+      "address": "Rue d'oran , colonel Amirouche , lot 112 N° 07 local 06 ,a coté de hadj Grrifa"
+    }
+  ],
+  "30": [
+    {
+      "code": "30A",
+      "name": "Ouargla",
+      "commune": "Ouargla",
+      "address": "Sidi Abdelkader, derrière la maison de jeune"
+    },
+    {
+      "code": "30B",
+      "name": "Ouargla - Hassi Messaoud",
+      "commune": "Hassi Messaoud",
+      "address": "Quartier 1850, rue principale du marché hebdomadaire, en face de l’ancienne agence KIA, Hassi Messaoud"
+    }
+  ],
+  "31": [
+    {
+      "code": "31Z",
+      "name": "Maraval [ E-com ]",
+      "commune": "Oran",
+      "address": "cite othmania rue ben arbia elhouari N24 loc 09 rdc oran"
+    },
+    {
+      "code": "31D",
+      "name": "Oran - Arzew",
+      "commune": "Arzew",
+      "address": "EN FACE ANCIEN DAIRA D’ARZEW , Rue KADIR ELHABIB N° 04, Oran"
+    },
+    {
+      "code": "31B",
+      "name": "Oran - Bir El Djir",
+      "commune": "Bir El Djir",
+      "address": "Coopérative Immobilière Dar El Amel - N°14 - Local1 RC"
+    },
+    {
+      "code": "31C",
+      "name": "Oran - Gambita",
+      "commune": "Oran",
+      "address": "Gambetta En face arrêt de bus 51 et 11 de (dispensaire cave-gay)"
+    }
+  ],
+  "32": [
+    {
+      "code": "32A",
+      "name": "El Bayadh",
+      "commune": "El Bayadh",
+      "address": "Cité jolie vue (Al-Mandhar Al-Jamil), à côté de la Direction de la distribution d'électricité et de gaz"
+    }
+  ],
+  "33": [
+    {
+      "code": "33A",
+      "name": "Illizi",
+      "commune": "Illizi",
+      "address": "(À côté de la wilaya / Près de boulangerie Ben Ziar)"
+    }
+  ],
+  "34": [
+    {
+      "code": "34A",
+      "name": "Bordj Bou Arreridj",
+      "commune": "Bordj Bou Arreridj",
+      "address": "Rue Tabet Salah Bordj Bou Arreridj (Devant la maison de finance)"
+    }
+  ],
+  "35": [
+    {
+      "code": "35A",
+      "name": "Boumerdès [ E-com ]",
+      "commune": "Boumerdes",
+      "address": "Cité mimouza en face la piscine olympique Boumerdes"
+    },
+    {
+      "code": "35C",
+      "name": "Boumerdès - Bordj Menaiel",
+      "commune": "Bordj Menaiel",
+      "address": "Rue Madaoui Ali, LOCAL BOUMZER EN FACE OPHTALMOLOGISTE DOCTEUR BENMOUSSA HOCINE, BORDJ MENAIEL, BOUMERDES (La station sera ouverte de 08h30 jusqu'à 18h00)"
+    },
+    {
+      "code": "35D",
+      "name": "Boumerdès - Dellys",
+      "commune": "Dellys",
+      "address": "La banlieue Est de Dellys, route nationale n° 24, Rez de chaussée bâtiment (B), Local N° B05, DELLYS | Repère : AGENCE IMMOBILLIERE NADJI"
+    },
+    {
+      "code": "35B",
+      "name": "Boumerdès - Ouled Moussa",
+      "commune": "Ouled Moussa",
+      "address": "La zone industrielle d'Ouled Moussa"
+    }
+  ],
+  "36": [
+    {
+      "code": "36A",
+      "name": "El Taref",
+      "commune": "El Tarf",
+      "address": "City center ( centre commerciale zaydi 1er étage N°10 )wilaya etEl taref"
+    }
+  ],
+  "37": [
+    {
+      "code": "37A",
+      "name": "Tindouf",
+      "commune": "Tindouf",
+      "address": "Magasin N°03 cité Al-Qasabi, Section 14, Groupement Immobilier N° 165, Commune de Tindouf (la station sera ouverte de 08h30 jusqu’à 17h00)"
+    }
+  ],
+  "38": [
+    {
+      "code": "38A",
+      "name": "Tissemsilt",
+      "commune": "Tissemsilt",
+      "address": "Résidence kaidi (promotion) ancien arrêt des taxis"
+    }
+  ],
+  "39": [
+    {
+      "code": "39A",
+      "name": "El Oued",
+      "commune": "El Oued",
+      "address": "Cité Al-Rimal, Commune El Oued wilaya El Ouadi (la route menant au tribunal)"
+    }
+  ],
+  "40": [
+    {
+      "code": "40A",
+      "name": "Khenchela",
+      "commune": "Khenchela",
+      "address": "Rue du poid lourd à coté de la clinique du dialyse Messai -Khenchela-"
+    }
+  ],
+  "41": [
+    {
+      "code": "41A",
+      "name": "Souk ahres",
+      "commune": "Souk Ahras",
+      "address": "En face radio souk ahras et l laboratoire des analyses Taghest"
+    }
+  ],
+  "42": [
+    {
+      "code": "42B",
+      "name": "Tipaza - Koléa",
+      "commune": "Kolea",
+      "address": "Route d’Alger - Kolea, commune de Kolea, wilaya de Tipaza."
+    },
+    {
+      "code": "42Z",
+      "name": "Tipaza [ E-com ]",
+      "commune": "Tipaza",
+      "address": "cite AADL"
+    }
+  ],
+  "43": [
+    {
+      "code": "43A",
+      "name": "Mila",
+      "commune": "Mila",
+      "address": "chateau d'eau en face protection civile"
+    },
+    {
+      "code": "43B",
+      "name": "Mila - Chelghoum El aid",
+      "commune": "Chelghoum Laid",
+      "address": "Rue 1er Nouvembre 1954 Chelghoum El aid (hotel Rhumel)"
+    },
+    {
+      "code": "43D",
+      "name": "Mila - Ferdjioua",
+      "commune": "Ferdjioua",
+      "address": "Rue 1 novembre en face la gam assurance"
+    },
+    {
+      "code": "43C",
+      "name": "Mila - Tadjenanet",
+      "commune": "Tadjenanet",
+      "address": "Rue 1 novembre en face cem mohamed abdo"
+    }
+  ],
+  "44": [
+    {
+      "code": "44A",
+      "name": "Ain Defla",
+      "commune": "Ain Defla",
+      "address": "City Najem, en face de l'entrée du groupement régional de la Gendarmerie Nationale, L’escadron"
+    },
+    {
+      "code": "44B",
+      "name": "Ain Defla - Khemis miliana [ E-com ]",
+      "commune": "Khemis Miliana",
+      "address": "Cité Ahmed ben Abd Allah commune khemismiliana wilaya de Ain defla"
+    }
+  ],
+  "45": [
+    {
+      "code": "45A",
+      "name": "Naâma - Mécheria",
+      "commune": "Mechria",
+      "address": "Route Nationale n°06, à côté de l’hôtel Amine et du centre d’Algérie Télécom"
+    }
+  ],
+  "46": [
+    {
+      "code": "46A",
+      "name": "Aïn Témouchent",
+      "commune": "Ain Temouchent",
+      "address": "22A cité des oliviers ain témouchnet 46000(en face du parking de la wilaya)"
+    }
+  ],
+  "47": [
+    {
+      "code": "47A",
+      "name": "Ghardaïa",
+      "commune": "Ghardaïa",
+      "address": "Rue principale Hadj Messaoud en face la branche municipale, Haj Masoud"
+    }
+  ],
+  "48": [
+    {
+      "code": "48A",
+      "name": "Relizane",
+      "commune": "Relizane",
+      "address": "Cité 31 logmt en face la justice, a coté de la banque societé général algerie"
+    }
+  ],
+  "49": [
+    {
+      "code": "49A",
+      "name": "Timimoun",
+      "commune": "Timimoun",
+      "address": "cité MAHDJOUB N° de la porte 16 , Timimoun en face le stade et SAA"
+    }
+  ],
+  "51": [
+    {
+      "code": "51A",
+      "name": "Ouled Djellal",
+      "commune": "Ouled Djellal",
+      "address": "Rez-de-chaussée de l'hôtel Transit, à côté de la protection civile d'Ouled Djellal."
+    }
+  ],
+  "52": [
+    {
+      "code": "52A",
+      "name": "BENI ABBES",
+      "commune": "Beni Abbes",
+      "address": "A coté la wilaya BENI ABBES , en face LAPIWI"
+    }
+  ],
+  "53": [
+    {
+      "code": "53A",
+      "name": "In Salah",
+      "commune": "Ain Salah",
+      "address": "Près de la Direction des travaux publics, en face de l'entrée du radar d'Algérie Télécom"
+    }
+  ],
+  "55": [
+    {
+      "code": "55A",
+      "name": "Touggourt",
+      "commune": "Touggourt",
+      "address": "Cité Sidi Abdeslam (Prés de la banque BEA), Touggourt"
+    }
+  ],
+  "56": [
+    {
+      "code": "56A",
+      "name": "Djanet",
+      "commune": "Djanet",
+      "address": "Centre-ville Tine Khatema, à côté du dentiste, Djanet"
+    }
+  ],
+  "58": [
+    {
+      "code": "58A",
+      "name": "El Meniaa",
+      "commune": "El Meniaa",
+      "address": "Rue de l'unite African (À côté de la boulangerie Boussaid) Il se trouve à 20 mètres de la mosquée saad beno abi elouas"
+    }
+  ],
+  "01": [
+    {
+      "code": "1A",
+      "name": "Adrar",
+      "commune": "Adrar",
+      "address": "Cité les palmier en face l'hopital"
+    }
+  ],
+  "02": [
+    {
+      "code": "2A",
+      "name": "Chlef",
+      "commune": "Chlef",
+      "address": "Rue Lac des Forêts (À côté du CNRC)"
+    },
+    {
+      "code": "2B",
+      "name": "Chlef - Tenes",
+      "commune": "Tenes",
+      "address": "Rue de Cherchell en face l’école primaire les frères Menad Ténès"
+    }
+  ],
+  "03": [
+    {
+      "code": "3A",
+      "name": "Laghouat",
+      "commune": "Laghouat",
+      "address": "Cité Al Ouiam (En face la mosquée Hammani )"
+    },
+    {
+      "code": "3B",
+      "name": "Laghouat - Aflou",
+      "commune": "Aflou",
+      "address": "Rue Al-Gaada, à côté de la boulangerie Belkhair"
+    }
+  ],
+  "04": [
+    {
+      "code": "4B",
+      "name": "Oum El Bouaghi",
+      "commune": "Oum El Bouaghi",
+      "address": "Cité 176 logements LSP Batiment 13 – Oum El Bouaghi"
+    },
+    {
+      "code": "4C",
+      "name": "Oum El Bouaghi - Aïn El Béïda",
+      "commune": "Ain Beida",
+      "address": "Aïn Béïda en face C.N.A.S a coté de Pharmacie Belambri"
+    },
+    {
+      "code": "4A",
+      "name": "Oum El Bouaghi - Ain Mlila",
+      "commune": "Ainmlila",
+      "address": "Cité El Hanaa, route du Lycée Messas"
+    }
+  ],
+  "05": [
+    {
+      "code": "5A",
+      "name": "Batna",
+      "commune": "Batna",
+      "address": "Cité meddour kchida en face les batiments 500"
+    },
+    {
+      "code": "5C",
+      "name": "Batna",
+      "commune": "Tazoult",
+      "address": "Cité 1200 logements oulmi en face la nouvelle poste et station pétro baraka"
+    },
+    {
+      "code": "5B",
+      "name": "Batna - Barika",
+      "commune": "Barika",
+      "address": "Quartier CHAABANI , en face notaire Bachir Farhani, a coté Algerie Telecom"
+    }
+  ],
+  "06": [
+    {
+      "code": "6A",
+      "name": "Bejaïa",
+      "commune": "Bejaia",
+      "address": "rue des frères Tabet ,a 20 mètres de l'hôtel Golden H en face la nouvelle promotion nid d'abeille."
+    },
+    {
+      "code": "6B",
+      "name": "Bejaïa - Akbou",
+      "commune": "Akbou",
+      "address": "Rue hibouche – arafou En face de djurdjura cars et alliance assurance"
+    },
+    {
+      "code": "6C",
+      "name": "Bejaïa - El-Kseur",
+      "commune": "El Kseur",
+      "address": "Rue hamaoui hamid commune El-Kseur, bejaia | Repère: local en face la sempac el-kseur"
+    }
+  ],
+  "07": [
+    {
+      "code": "7A",
+      "name": "Biskra",
+      "commune": "Biskra",
+      "address": "N° 05, cité elboustène,(Hai ELmodjahidine) en face du Centre de formation et de d'intervention rapide de la police"
+    }
+  ],
+  "08": [
+    {
+      "code": "8A",
+      "name": "Béchar",
+      "commune": "Bechar",
+      "address": "Cité 622 Logement Al Badr N°02 - Bloc 52 (derière la radio EL SAOURA / En face la protection civile)"
+    }
+  ],
+  "09": [
+    {
+      "code": "9Z",
+      "name": "Beni Mered [ E-com ]",
+      "commune": "Beni Mered",
+      "address": "Beni Mered.pas loin du Commissariat de police."
+    },
+    {
+      "code": "9A",
+      "name": "Blida",
+      "commune": "Blida",
+      "address": "El ramoule à côté de la nouvelle gare routière"
+    },
+    {
+      "code": "9B",
+      "name": "Blida - Boufarik",
+      "commune": "Boufarik",
+      "address": "La résidence Belkbir en face la salle des fetes Layalina"
+    }
+  ]
+}
