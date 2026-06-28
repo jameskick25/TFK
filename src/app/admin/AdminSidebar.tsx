@@ -18,7 +18,7 @@ export default function AdminSidebar() {
 
   return (
     <aside className="admin-sidebar">
-      <h2>AM MODE ADMIN</h2>
+      <h2>TFK STORE ADMIN</h2>
       <nav className="admin-nav">
         {links.map((link) => {
           const isActive = pathname === link.href || (link.href !== '/admin' && pathname.startsWith(link.href));

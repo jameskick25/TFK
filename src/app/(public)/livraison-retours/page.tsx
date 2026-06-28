@@ -1,7 +1,7 @@
 import LivraisonClient from './LivraisonClient';
 
 export const metadata = {
-  title: 'Livraison & Retours | AM MODE',
+  title: 'Livraison & Retours | TFK Store',
 };
 
 export default function LivraisonRetours() {

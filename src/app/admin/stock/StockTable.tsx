@@ -83,7 +83,7 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `stock_am_mode_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `stock_tfk_store_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

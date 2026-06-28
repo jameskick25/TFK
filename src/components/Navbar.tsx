@@ -25,7 +25,7 @@ export default function Navbar() {
           
           <Link href="/" className="navbar-logo" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img src="/logo.jpg" alt="TFK Store" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-            <span style={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.02em' }}>TFK Store</span>
+            <span style={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>TFK Store</span>
           </Link>
 
           <div className={`navbar-nav ${mobileMenuOpen ? 'open' : ''}`}>
@@ -38,9 +38,10 @@ export default function Navbar() {
 
           <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {/* Language Switcher */}
-            <div style={{ display: 'flex', background: 'var(--surface-muted)', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+            <div className="lang-switcher" style={{ display: 'flex', background: 'var(--surface-muted)', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)' }}>
               <button 
                 onClick={() => setLanguage('fr')}
+                className="lang-btn"
                 style={{ 
                   padding: '6px 10px', 
                   border: 'none', 
@@ -55,6 +56,7 @@ export default function Navbar() {
               </button>
               <button 
                 onClick={() => setLanguage('ar')}
+                className="lang-btn"
                 style={{ 
                   padding: '6px 10px', 
                   border: 'none', 
@@ -71,6 +73,7 @@ export default function Navbar() {
 
             <button
               onClick={openDrawer}
+              className="cart-btn"
               style={{ background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: '4px', padding: '6px 12px', fontSize: '1.1rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <span>🛒</span>

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Guide des Tailles | AM MODE',
+  title: 'Guide des Tailles | TFK Store',
 };
 
 export default function GuideDesTailles() {

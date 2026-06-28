@@ -4,7 +4,7 @@ import CatalogClient from './CatalogClient';
 export const revalidate = 60; // Cache for 60s
 
 export const metadata = {
-  title: 'Produits — AM MODE',
+  title: 'Produits — TFK Store',
 };
 
 export default async function CatalogPage() {

@@ -753,3 +753,36 @@ input:focus, select:focus, textarea:focus {
     text-align: center;
   }
 }
+
+/* ── Mobile Navbar Styles (Max width 576px) ── */
+@media (max-width: 576px) {
+  .navbar {
+    padding: 8px 0 !important;
+  }
+  .navbar-logo {
+    font-size: 1rem !important;
+    gap: 8px !important;
+  }
+  .navbar-logo img {
+    height: 30px !important;
+  }
+  .lang-switcher {
+    border-radius: 4px !important;
+  }
+  .lang-btn {
+    padding: 4px 8px !important;
+    font-size: 0.7rem !important;
+  }
+  .cart-btn {
+    padding: 4px 8px !important;
+    font-size: 0.9rem !important;
+    gap: 4px !important;
+  }
+  .cart-btn span:last-child {
+    padding: 1px 4px !important;
+    font-size: 0.7rem !important;
+  }
+  .nav-actions {
+    gap: 8px !important;
+  }
+}
