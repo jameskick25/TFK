@@ -19,13 +19,6 @@ export default function Navbar() {
 
   return (
     <header className="nav-shell" style={headerStyle}>
-      {/* Top Banner */}
-      <div className="nav-top">
-        <span className="dot"></span>
-        <span>{t('delivery_everywhere')}</span>
-        <span className="dot"></span>
-      </div>
-
       {/* Main Navbar */}
       <nav className="navbar" style={{ padding: '8px 0' }}>
         <div className="container navbar-container">
@@ -37,8 +30,6 @@ export default function Navbar() {
 
           <div className={`navbar-nav ${mobileMenuOpen ? 'open' : ''}`}>
             <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('home')}</Link>
-            <Link href="/clothes" className={`nav-link ${pathname === '/clothes' || pathname?.startsWith('/clothes/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{language === 'ar' ? 'ملابس' : 'Vêtements'}</Link>
-            <Link href="/accessories" className={`nav-link ${pathname === '/accessories' || pathname?.startsWith('/accessories/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{language === 'ar' ? 'إكسسوارات' : 'Accessoires'}</Link>
             <Link href="/about" className={`nav-link ${pathname === '/about' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('about')}</Link>
             <Link href="/livraison-retours" className={`nav-link ${pathname === '/livraison-retours' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('delivery_returns')}</Link>
             <Link href="/contact" className={`nav-link ${pathname === '/contact' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('contact')}</Link>

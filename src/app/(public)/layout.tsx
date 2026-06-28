@@ -15,7 +15,7 @@ export default function PublicLayout({
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
           <CartDrawer />
-          <main style={{ flex: '1 0 auto', paddingTop: '80px' }}>
+          <main style={{ flex: '1 0 auto', paddingTop: '64px' }}>
             {children}
           </main>
           <Footer />

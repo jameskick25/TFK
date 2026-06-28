@@ -1,4 +1,4 @@
-export const metadata = { title: "Contact - AM MODE" };
+export const metadata = { title: "Contact - TFK Store" };
 
 export default function ContactPage() {
   return (
@@ -95,7 +95,7 @@ export default function ContactPage() {
                     Téléphone
                   </h3>
                   <p style={{ color: 'var(--text-muted, #6b7280)', margin: 0 }} dir="ltr">
-                    07 91 99 50 55
+                    +213 5 54140339
                   </p>
                 </div>
               </div>
@@ -120,12 +120,12 @@ export default function ContactPage() {
                   </h3>
                   <p style={{ margin: 0 }}>
                     <a
-                      href="https://www.instagram.com/am_mode_16?igsh=MWI2bGVwNnZ5azV5eA%3D%3D&utm_source=qr"
+                      href="https://www.instagram.com/tfk_stor_e?igsh=eWhhOXF2b3FsbGdo"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ color: 'var(--text-muted, #6b7280)', textDecoration: 'none' }}
                     >
-                      @am_mode_16 →
+                      @tfk_stor_e →
                     </a>
                   </p>
                 </div>
@@ -151,7 +151,7 @@ export default function ContactPage() {
                   </h3>
                   <p style={{ margin: 0 }}>
                     <a
-                      href="https://www.facebook.com/share/1CotJm4fa4/?mibextid=wwXIfr"
+                      href="https://www.facebook.com/tfk_store"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ color: 'var(--text-muted, #6b7280)', textDecoration: 'none' }}

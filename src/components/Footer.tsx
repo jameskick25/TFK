@@ -31,8 +31,6 @@ export default function Footer() {
           </h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <li><Link href="/" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('home')}</Link></li>
-            <li><Link href="/clothes" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{isAr ? 'الملابس' : 'Vêtements'}</Link></li>
-            <li><Link href="/accessories" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{isAr ? 'الإكسسوارات' : 'Accessoires'}</Link></li>
             <li><Link href="/livraison-retours" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('delivery_returns')}</Link></li>
             <li><Link href="/faq" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('faq')}</Link></li>
           </ul>
@@ -44,8 +42,8 @@ export default function Footer() {
             {isAr ? 'اتصل بنا' : 'Contactez-nous'}
           </h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', color: '#9ca3af' }}>
-            <li><a href="tel:0791995055" style={{ color: '#9ca3af', textDecoration: 'none' }}>📞 07 91 99 50 55</a></li>
-            <li><a href="https://www.instagram.com/tfk_store" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>📸 Instagram</a></li>
+            <li><a href="tel:+213554140339" style={{ color: '#9ca3af', textDecoration: 'none' }}>📞 +213 5 54140339</a></li>
+            <li><a href="https://www.instagram.com/tfk_stor_e?igsh=eWhhOXF2b3FsbGdo" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>📸 Instagram</a></li>
             <li><a href="https://www.facebook.com/tfk_store" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>📘 Facebook</a></li>
             <li><Link href="/contact" style={{ color: '#9ca3af', textDecoration: 'none' }}>✉️ {t('contact')}</Link></li>
           </ul>
