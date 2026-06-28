@@ -3,23 +3,23 @@
 @tailwind utilities;
 
 :root {
-  /* TFK Store Elegant & Modern Redesign (Gold & Black Palette) */
-  --bg: #fafafa; /* Soft cream/white background */
-  --bg-dark: #0a0a0b; /* Elegant rich black */
+  /* TFK Store Elegant & Modern Redesign (Light Blue & Slate Palette) */
+  --bg: #f8fafc; /* Very light slate-blue background */
+  --bg-dark: #0f172a; /* Slate dark background */
   --surface: #ffffff;
-  --surface-muted: #f5f5f7;
-  --surface-dark: #121214;
+  --surface-muted: #f1f5f9;
+  --surface-dark: #1e293b;
   
-  --text: #0f0f10;
-  --text-muted: #71717a;
-  --text-dark: #f4f4f5;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-dark: #f8fafc;
   
-  --border: #e4e4e7;
-  --border-gold: rgba(184, 144, 71, 0.25);
+  --border: #e2e8f0;
+  --border-accent: rgba(14, 165, 233, 0.2);
   
-  --accent: #b89047; /* TFK Store signature gold */
-  --accent-hover: #9c7838; /* Darker gold hover */
-  --accent-light: #dfc187; /* Lighter gold accent */
+  --accent: #0284c7; /* Sky blue accent */
+  --accent-hover: #0369a1; /* Deeper ocean blue hover */
+  --accent-light: #e0f2fe; /* Light blue accent bg */
   --accent-text: #ffffff;
   
   --error: #ef4444;
@@ -30,8 +30,8 @@
   --radius-lg: 16px;
   
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow: 0 10px 15px -3px rgba(0,0,0,0.03), 0 4px 6px -2px rgba(0,0,0,0.01);
-  --shadow-gold: 0 8px 30px rgba(184, 144, 71, 0.12);
+  --shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.03), 0 4px 6px -2px rgba(15, 23, 42, 0.01);
+  --shadow-accent: 0 8px 30px rgba(14, 165, 233, 0.12);
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Montserrat', 'Inter', sans-serif;
@@ -126,14 +126,14 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--accent);
   color: var(--accent-text);
   border: 1px solid var(--accent);
-  box-shadow: 0 4px 12px rgba(184, 144, 71, 0.2);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
 }
 
 .btn-primary:hover {
   background-color: var(--accent-hover);
   border-color: var(--accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(184, 144, 71, 0.3);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.3);
 }
 
 .btn-secondary {
@@ -154,8 +154,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-dark:hover {
-  background-color: #27272a;
-  border-color: #27272a;
+  background-color: #1e293b;
+  border-color: #1e293b;
   transform: translateY(-1px);
 }
 
@@ -189,21 +189,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
-.nav-top {
-  background-color: var(--bg-dark);
-  color: #fff;
-  font-size: 0.75rem;
-  text-align: center;
-  padding: 6px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 .navbar {
   padding: 12px 0;
 }
@@ -227,7 +212,7 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-logo img {
   height: 36px;
   width: auto;
-  border: 1px solid var(--border-gold);
+  border: 1px solid var(--border-accent);
 }
 
 .navbar-nav {
@@ -325,7 +310,7 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(184, 144, 71, 0.15);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
 }
 
 .form-row {
@@ -337,117 +322,6 @@ input:focus, select:focus, textarea:focus {
   .form-row { flex-direction: column; gap: 0; }
 }
 
-/* ── Split Landing Page ── */
-.split-container {
-  display: flex;
-  height: calc(100vh - 72px);
-  overflow: hidden;
-  background-color: var(--bg-dark);
-}
-
-.split-pane {
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 48px;
-  text-decoration: none;
-  color: #fff;
-  transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
-  overflow: hidden;
-}
-
-.split-pane::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1);
-  z-index: 1;
-}
-
-.split-pane.clothes::before {
-  background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.75)), url('/images/clothes_universe.png');
-}
-
-.split-pane.accessories::before {
-  background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.75)), url('/images/accessories_universe.png');
-}
-
-.split-pane-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.85) 100%);
-  z-index: 2;
-  transition: opacity 0.5s;
-}
-
-.split-pane-content {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  max-width: 440px;
-}
-
-.split-pane-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
-}
-
-.split-pane-desc {
-  font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 12px;
-}
-
-.split-pane:hover {
-  flex: 1.2;
-}
-
-.split-pane:hover::before {
-  transform: scale(1.06);
-}
-
-.split-divider {
-  width: 1px;
-  background: rgba(184, 144, 71, 0.25);
-  height: 100%;
-  position: relative;
-  z-index: 4;
-  box-shadow: 0 0 10px rgba(184, 144, 71, 0.5);
-}
-
-@media (max-width: 768px) {
-  .split-container {
-    flex-direction: column;
-    height: auto;
-    min-height: calc(100vh - 72px);
-  }
-  .split-pane {
-    height: 50vh;
-  }
-  .split-divider {
-    width: 100%;
-    height: 1px;
-  }
-  .split-pane-title {
-    font-size: 2rem;
-  }
-  .split-pane-desc {
-    font-size: 0.95rem;
-  }
-}
-
 /* ── Hero Banners ── */
 .hero-banner {
   background-color: var(--bg-dark);
@@ -456,7 +330,7 @@ input:focus, select:focus, textarea:focus {
   text-align: center;
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid var(--border-gold);
+  border-bottom: 1px solid var(--border-accent);
 }
 
 .hero-banner::after {
@@ -466,7 +340,7 @@ input:focus, select:focus, textarea:focus {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(184,144,71,0.07) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.07) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -587,7 +461,7 @@ input:focus, select:focus, textarea:focus {
 .gallery-thumbs img.active {
   opacity: 1;
   border-color: var(--accent);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-accent);
 }
 
 /* ── Pro Option Buttons ── */
@@ -640,7 +514,7 @@ input:focus, select:focus, textarea:focus {
 
 .size-btn.active {
   border-color: var(--accent);
-  background: rgba(184, 144, 71, 0.05);
+  background: rgba(14, 165, 233, 0.05);
   color: var(--accent);
   font-weight: 700;
   box-shadow: 0 0 0 1px var(--accent);
@@ -720,7 +594,7 @@ input:focus, select:focus, textarea:focus {
 .product-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow);
-  border-color: var(--border-gold);
+  border-color: var(--border-accent);
 }
 
 .product-card-img {
@@ -850,7 +724,7 @@ input:focus, select:focus, textarea:focus {
   background-color: var(--accent);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 4px 10px rgba(184, 144, 71, 0.15);
+  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.15);
 }
 
 .admin-main {

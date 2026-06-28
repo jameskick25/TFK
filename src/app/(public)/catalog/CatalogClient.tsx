@@ -119,7 +119,7 @@ export default function CatalogClient({ categories, products }: { categories: an
   }, [expandedProducts, activeFilter, activeSearchQuery]);
 
   return (
-    <section className="section" style={{ paddingTop: '24px', backgroundColor: '#f9fafb', minHeight: '100vh' }}>
+    <section className="section" style={{ paddingTop: '24px', backgroundColor: 'var(--bg)', minHeight: '100vh' }}>
       <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
         
         {/* Filters Card */}
@@ -169,7 +169,7 @@ export default function CatalogClient({ categories, products }: { categories: an
                 type="submit"
                 style={{
                   padding: '0 20px',
-                  backgroundColor: '#111827',
+                  backgroundColor: 'var(--accent)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '8px',
@@ -299,7 +299,7 @@ export default function CatalogClient({ categories, products }: { categories: an
                           gap: '6px', 
                           width: '100%', 
                           padding: '8px', 
-                          backgroundColor: '#1a1f36', // Site's dark navy color
+                          backgroundColor: 'var(--accent)', // Theme accent color
                           border: 'none', 
                           borderRadius: '6px', 
                           color: '#fff', 
