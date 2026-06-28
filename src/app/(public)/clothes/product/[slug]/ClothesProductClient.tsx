@@ -195,19 +195,7 @@ export default function ClothesProductClient({ product, variants }: { product: a
             </div>
           )}
           
-          {/* Fashion Tabs (Materials & Care) */}
-          <div style={{ marginTop: '32px', borderTop: '1px solid var(--border)', paddingTop: '24px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '12px' }}>🌿 Matière & Entretien</h3>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: '16px' }}>
-              {product.material || "Fabriqué avec soin dans des tissus respirants de qualité supérieure pour assurer confort et durabilité au quotidien."}
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'var(--surface-muted)', padding: '16px', borderRadius: '8px', fontSize: '0.85rem' }}>
-              <div>🧼 <strong>Lavage :</strong> {product.care || "Lavage en machine à 30°C doux"}</div>
-              <div>💨 <strong>Séchage :</strong> Tambour à basse température ou air libre</div>
-              <div>⚡ <strong>Style :</strong> Coupe moderne et intemporelle</div>
-              <div>🧵 <strong>Détails :</strong> Coutures doublées résistantes</div>
-            </div>
-          </div>
+
         </div>
 
         {/* Right: Info & Checkout Panel */}

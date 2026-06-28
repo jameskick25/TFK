@@ -107,12 +107,31 @@ export async function createProduct(formData: FormData) {
 export async function createCategory(formData: FormData) {
   const supabase = await createAdminClient();
   const name = formData.get('name') as string;
+  const imageFile = formData.get('image') as File;
   
   if (!name) return;
   
   const slug = generateSlug(name);
+  let image_url = null;
+
+  if (imageFile && imageFile.size > 0) {
+    const fileExt = imageFile.name.split('.').pop();
+    const fileName = `category-${slug}-${Math.random()}.${fileExt}`;
+    const { error: uploadError } = await supabase.storage
+      .from('products')
+      .upload(fileName, imageFile);
+    
+    if (!uploadError) {
+      const { data: publicUrlData } = supabase.storage
+        .from('products')
+        .getPublicUrl(fileName);
+      image_url = publicUrlData.publicUrl;
+    } else {
+      console.error('Erreur upload category image', uploadError);
+    }
+  }
   
-  await supabase.from('categories').insert({ name, slug });
+  await supabase.from('categories').insert({ name, slug, image_url });
   redirect('/admin/categories');
 }
 
@@ -121,8 +140,66 @@ export async function deleteCategory(formData: FormData) {
   const id = formData.get('id') as string;
   
   if (!id) return;
+
+  // Get image URL to delete from storage
+  const { data: cat } = await supabase
+    .from('categories')
+    .select('image_url')
+    .eq('id', id)
+    .single();
+
+  if (cat?.image_url) {
+    const parts = cat.image_url.split('/');
+    const fileName = parts[parts.length - 1];
+    await supabase.storage.from('products').remove([fileName]);
+  }
   
   await supabase.from('categories').delete().eq('id', id);
+  redirect('/admin/categories');
+}
+
+export async function updateCategoryImage(formData: FormData) {
+  const supabase = await createAdminClient();
+  const id = formData.get('id') as string;
+  const imageFile = formData.get('image') as File;
+
+  if (!id || !imageFile || imageFile.size === 0) return;
+
+  // Fetch category to get slug/name for file name
+  const { data: cat } = await supabase
+    .from('categories')
+    .select('slug, image_url')
+    .eq('id', id)
+    .single();
+  
+  if (!cat) return;
+
+  // Delete old image if exists
+  if (cat.image_url) {
+    const parts = cat.image_url.split('/');
+    const oldFileName = parts[parts.length - 1];
+    await supabase.storage.from('products').remove([oldFileName]);
+  }
+
+  const fileExt = imageFile.name.split('.').pop();
+  const fileName = `category-${cat.slug}-${Math.random()}.${fileExt}`;
+  const { error: uploadError } = await supabase.storage
+    .from('products')
+    .upload(fileName, imageFile);
+  
+  if (!uploadError) {
+    const { data: publicUrlData } = supabase.storage
+      .from('products')
+      .getPublicUrl(fileName);
+    
+    await supabase
+      .from('categories')
+      .update({ image_url: publicUrlData.publicUrl })
+      .eq('id', id);
+  } else {
+    console.error('Erreur upload category image', uploadError);
+  }
+
   redirect('/admin/categories');
 }
 

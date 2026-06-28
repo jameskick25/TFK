@@ -99,12 +99,12 @@ export default async function Home() {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
             {categories.slice(0, 3).map((cat, i) => {
-              const cardImages = [
-                '/images/photo_1_2026-06-02_20-42-37.jpg',
-                '/images/photo_2_2026-06-02_20-42-37.jpg',
-                '/images/photo_3_2026-06-02_20-42-37.jpg'
+              const fallbackImages = [
+                'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=600&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
               ];
-              const bgImg = cardImages[i] || '/images/clothes_universe.png';
+              const bgImg = cat.image_url || fallbackImages[i % fallbackImages.length];
               
               return (
                 <Link 
