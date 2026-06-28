@@ -5,8 +5,16 @@ import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 
-export default function CatalogClient({ categories, products }: { categories: any[], products: any[] }) {
-  const [activeFilter, setActiveFilter] = useState('all');
+export default function CatalogClient({ 
+  categories, 
+  products,
+  initialFilter = 'all'
+}: { 
+  categories: any[], 
+  products: any[],
+  initialFilter?: string
+}) {
+  const [activeFilter, setActiveFilter] = useState(initialFilter);
   const [searchInput, setSearchInput] = useState('');
   const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const { language } = useLanguage();

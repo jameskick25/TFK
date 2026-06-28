@@ -30,6 +30,7 @@ export default function Navbar() {
 
           <div className={`navbar-nav ${mobileMenuOpen ? 'open' : ''}`}>
             <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('home')}</Link>
+            <Link href="/clothes" className={`nav-link ${pathname === '/clothes' || pathname?.startsWith('/clothes/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{language === 'ar' ? 'ملابس' : 'Vêtements'}</Link>
             <Link href="/about" className={`nav-link ${pathname === '/about' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('about')}</Link>
             <Link href="/livraison-retours" className={`nav-link ${pathname === '/livraison-retours' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('delivery_returns')}</Link>
             <Link href="/contact" className={`nav-link ${pathname === '/contact' ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('contact')}</Link>

@@ -31,6 +31,7 @@ export default function Footer() {
           </h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <li><Link href="/" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('home')}</Link></li>
+            <li><Link href="/clothes" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{isAr ? 'الملابس' : 'Vêtements'}</Link></li>
             <li><Link href="/livraison-retours" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('delivery_returns')}</Link></li>
             <li><Link href="/faq" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}>{t('faq')}</Link></li>
           </ul>
