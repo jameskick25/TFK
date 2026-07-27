@@ -278,8 +278,10 @@ export default function CatalogClient({
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        minHeight: '2.4rem', // Reduced height
-                        lineHeight: '1.2'
+                        minHeight: '2.4rem',
+                        lineHeight: '1.2',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word'
                       }}>
                         {product.name}
                       </h3>

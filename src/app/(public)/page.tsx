@@ -155,7 +155,7 @@ export default async function Home() {
                   </div>
                   <div className="product-card-body" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                     <div>
-                      <h3 className="product-card-title" style={{ minHeight: '2.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <h3 className="product-card-title" style={{ minHeight: '2.5rem', lineHeight: '1.25', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                         <Link href={`/product/${product.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                           {product.name}
                         </Link>
