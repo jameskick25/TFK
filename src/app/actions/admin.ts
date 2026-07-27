@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { compressAndUploadImage } from './compress-and-upload';
 
 function generateSlug(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -58,27 +59,17 @@ export async function createProduct(formData: FormData) {
     const image = formData.get(`image_${colorName}`) as File;
     
     if (image && image.size > 0) {
-      const fileExt = image.name.split('.').pop();
-      const fileName = `${product.id}-${colorName}-${Math.random()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('products')
-        .upload(fileName, image);
+      const storageName = `${product.id}-${colorName || 'main'}-${Math.floor(Math.random() * 10000)}`;
+      const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(image, storageName);
 
-      if (!uploadError) {
-        const { data: publicUrlData } = supabase.storage
-          .from('products')
-          .getPublicUrl(fileName);
-          
-        if (publicUrlData.publicUrl) {
-          await supabase.from('product_images').insert({
-            product_id: product.id,
-            url: publicUrlData.publicUrl,
-            color: colorName || null,
-            is_main: isFirstImage // First uploaded image is main
-          });
-          isFirstImage = false;
-        }
+      if (!uploadError && optimizedUrl) {
+        await supabase.from('product_images').insert({
+          product_id: product.id,
+          url: optimizedUrl,
+          color: colorName || null,
+          is_main: isFirstImage // First uploaded image is main
+        });
+        isFirstImage = false;
       } else {
         console.error('Erreur upload image pour couleur', colorName, uploadError);
       }
@@ -115,17 +106,11 @@ export async function createCategory(formData: FormData) {
   let image_url = null;
 
   if (imageFile && imageFile.size > 0) {
-    const fileExt = imageFile.name.split('.').pop();
-    const fileName = `category-${slug}-${Math.random()}.${fileExt}`;
-    const { error: uploadError } = await supabase.storage
-      .from('products')
-      .upload(fileName, imageFile);
+    const storageName = `category-${slug}-${Math.floor(Math.random() * 10000)}`;
+    const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(imageFile, storageName);
     
-    if (!uploadError) {
-      const { data: publicUrlData } = supabase.storage
-        .from('products')
-        .getPublicUrl(fileName);
-      image_url = publicUrlData.publicUrl;
+    if (!uploadError && optimizedUrl) {
+      image_url = optimizedUrl;
     } else {
       console.error('Erreur upload category image', uploadError);
     }
@@ -181,20 +166,13 @@ export async function updateCategoryImage(formData: FormData) {
     await supabase.storage.from('products').remove([oldFileName]);
   }
 
-  const fileExt = imageFile.name.split('.').pop();
-  const fileName = `category-${cat.slug}-${Math.random()}.${fileExt}`;
-  const { error: uploadError } = await supabase.storage
-    .from('products')
-    .upload(fileName, imageFile);
+  const storageName = `category-${cat.slug}-${Math.floor(Math.random() * 10000)}`;
+  const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(imageFile, storageName);
   
-  if (!uploadError) {
-    const { data: publicUrlData } = supabase.storage
-      .from('products')
-      .getPublicUrl(fileName);
-    
+  if (!uploadError && optimizedUrl) {
     await supabase
       .from('categories')
-      .update({ image_url: publicUrlData.publicUrl })
+      .update({ image_url: optimizedUrl })
       .eq('id', id);
   } else {
     console.error('Erreur upload category image', uploadError);

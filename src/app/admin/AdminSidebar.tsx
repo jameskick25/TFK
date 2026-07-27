@@ -14,6 +14,7 @@ export default function AdminSidebar() {
     { href: '/admin/stock', label: 'Gestion Stocks', icon: '🔢' },
     { href: '/admin/sales', label: 'Ventes', icon: '📈' },
     { href: '/admin/expenses', label: 'Dépenses', icon: '📉' },
+    { href: '/admin/optimize-images', label: 'Optimisation Images', icon: '📸' },
   ];
 
   return (
