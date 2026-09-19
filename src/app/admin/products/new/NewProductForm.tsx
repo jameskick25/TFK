@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { createProduct } from '@/app/actions/admin';
-import Link from 'next/link';
 import { getSectionForCategory } from '@/utils/sections';
 
 type SizeVariant = {
@@ -155,31 +154,120 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
   };
 
   return (
-    <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '14px',
+        padding: '24px',
+        border: '1px solid #e4e4e7',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        marginBottom: '40px'
+      }}
+    >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontWeight: '500', color: '#374151' }}>Nom du produit *</label>
-          <input type="text" name="name" required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+        {/* Nom du produit */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+            Nom du produit *
+          </label>
+          <input
+            type="text"
+            name="name"
+            required
+            placeholder="Ex: T-Shirt Oversize Signature Noir"
+            style={{
+              padding: '11px 14px',
+              borderRadius: '8px',
+              border: '1px solid #d4d4d8',
+              fontSize: '1rem',
+              outline: 'none',
+              backgroundColor: '#ffffff'
+            }}
+          />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontWeight: '500', color: '#374151' }}>Description</label>
-          <textarea name="description" rows={4} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }}></textarea>
+        {/* Description */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+            Description
+          </label>
+          <textarea
+            name="description"
+            rows={4}
+            placeholder="Détails du produit, coupe, conseils d'entretien..."
+            style={{
+              padding: '11px 14px',
+              borderRadius: '8px',
+              border: '1px solid #d4d4d8',
+              fontSize: '0.95rem',
+              outline: 'none',
+              backgroundColor: '#ffffff',
+              resize: 'vertical'
+            }}
+          />
         </div>
 
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-            <label style={{ fontWeight: '500', color: '#374151' }}>Prix (DZD) *</label>
-            <input type="number" name="price" required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+        {/* Prix, Ancien Prix, Catégorie */}
+        <div className="admin-form-row" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '160px' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+              Prix de vente (DZD) *
+            </label>
+            <input
+              type="number"
+              name="price"
+              required
+              min="0"
+              placeholder="3500"
+              style={{
+                padding: '11px 14px',
+                borderRadius: '8px',
+                border: '1px solid #d4d4d8',
+                fontSize: '1rem',
+                outline: 'none',
+                backgroundColor: '#ffffff'
+              }}
+            />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-            <label style={{ fontWeight: '500', color: '#374151' }}>Ancien Prix (DZD)</label>
-            <input type="number" name="old_price" style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }} placeholder="Optionnel" />
+
+          <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '160px' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+              Ancien Prix (DZD) <span style={{ color: '#a1a1aa', fontWeight: 400 }}>(optionnel)</span>
+            </label>
+            <input
+              type="number"
+              name="old_price"
+              min="0"
+              placeholder="4500"
+              style={{
+                padding: '11px 14px',
+                borderRadius: '8px',
+                border: '1px solid #d4d4d8',
+                fontSize: '1rem',
+                outline: 'none',
+                backgroundColor: '#ffffff'
+              }}
+            />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-            <label style={{ fontWeight: '500', color: '#374151' }}>Catégorie *</label>
-            <select name="category_id" required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
+
+          <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '200px' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+              Catégorie *
+            </label>
+            <select
+              name="category_id"
+              required
+              style={{
+                padding: '11px 14px',
+                borderRadius: '8px',
+                border: '1px solid #d4d4d8',
+                fontSize: '0.95rem',
+                outline: 'none',
+                backgroundColor: '#ffffff',
+                height: '46px'
+              }}
+            >
               <option value="">Sélectionnez une catégorie</option>
               {categories?.map(cat => (
                 <option key={cat.id} value={cat.id}>
@@ -191,41 +279,87 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
         </div>
 
         {/* Dynamic Variants Section */}
-        <div style={{ padding: '24px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', marginTop: '16px' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#111827' }}>Couleurs, Photos et Stock</h3>
-          <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#6b7280' }}>
-            Ajoutez les couleurs disponibles pour ce produit, uploadez la photo correspondante, et définissez les tailles en stock.
-          </p>
+        <div
+          style={{
+            padding: '20px',
+            backgroundColor: '#fafafa',
+            border: '1px solid #e4e4e7',
+            borderRadius: '12px',
+            marginTop: '8px'
+          }}
+        >
+          <div style={{ marginBottom: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#09090b' }}>
+              Couleurs, Photos et Stock par Taille
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#71717a' }}>
+              Définissez les couleurs disponibles, uploadez la photo pour chaque couleur et ajustez les stocks.
+            </p>
+          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {colorVariants.map((colorVariant, colorIndex) => (
-              <div key={colorVariant.id} style={{ padding: '16px', backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', position: 'relative' }}>
+              <div
+                key={colorVariant.id}
+                style={{
+                  padding: '16px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e4e4e7',
+                  borderRadius: '10px',
+                  position: 'relative'
+                }}
+              >
                 {colorVariants.length > 1 && (
                   <button 
                     type="button" 
                     onClick={() => removeColorVariant(colorVariant.id)}
-                    style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      right: '12px',
+                      background: '#fee2e2',
+                      border: 'none',
+                      color: '#b91c1c',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
                   >
-                    X Supprimer
+                    Supprimer
                   </button>
                 )}
                 
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                  <div style={{ flex: '1', minWidth: '200px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="admin-form-row" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                  {/* Left Column: Color and Photo */}
+                  <div className="admin-form-col" style={{ flex: '1', minWidth: '220px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.9rem', fontWeight: '600' }}>Nom de la couleur</label>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
+                        Couleur #{colorIndex + 1} *
+                      </label>
                       <input 
                         type="text" 
                         required 
-                        placeholder="Ex: Bleu Marine"
+                        placeholder="Ex: Noir Mat, Kaki, Blanc..."
                         value={colorVariant.colorName}
                         onChange={(e) => updateColorVariant(colorVariant.id, 'colorName', e.target.value)}
-                        style={{ padding: '8px', borderRadius: '4px', border: '1px solid #d1d5db' }} 
+                        style={{
+                          padding: '9px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid #d4d4d8',
+                          fontSize: '0.95rem'
+                        }} 
                       />
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.9rem', fontWeight: '600' }}>Photo pour cette couleur</label>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
+                        Photo du produit ({colorVariant.colorName || 'cette couleur'})
+                      </label>
                       <input 
                         type="file" 
                         accept="image/*"
@@ -234,20 +368,38 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
                             updateColorVariant(colorVariant.id, 'image', e.target.files[0]);
                           }
                         }}
-                        style={{ padding: '8px', border: '1px dashed #d1d5db', borderRadius: '4px' }} 
+                        style={{
+                          padding: '8px',
+                          border: '1px dashed #d4d4d8',
+                          borderRadius: '6px',
+                          backgroundColor: '#fafafa',
+                          fontSize: '0.82rem'
+                        }} 
                       />
                     </div>
                   </div>
 
-                  <div style={{ flex: '2', minWidth: '300px', borderLeft: '1px solid #e5e7eb', paddingLeft: '24px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <label style={{ fontSize: '0.9rem', fontWeight: '600' }}>Tailles et Stock</label>
+                  {/* Right Column: Sizes & Stock */}
+                  <div className="admin-form-col" style={{ flex: '1.4', minWidth: '240px', borderTop: '1px solid #f4f4f5', paddingTop: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#3f3f46', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Tailles & Stocks
+                      </label>
                       <button 
                         type="button" 
                         onClick={() => addSize(colorVariant.id)}
-                        style={{ padding: '4px 8px', fontSize: '0.8rem', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '0.78rem',
+                          backgroundColor: '#f4f4f5',
+                          border: '1px solid #e4e4e7',
+                          color: '#09090b',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
                       >
-                        + Ajouter une taille
+                        + Ajouter taille
                       </button>
                     </div>
 
@@ -260,24 +412,53 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
                             placeholder="Taille (S, M, 42...)"
                             value={sizeObj.size}
                             onChange={(e) => updateSize(colorVariant.id, sizeIndex, 'size', e.target.value)}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #d1d5db', flex: 1 }} 
+                            style={{
+                              padding: '8px 10px',
+                              borderRadius: '6px',
+                              border: '1px solid #d4d4d8',
+                              flex: 1,
+                              fontSize: '0.9rem'
+                            }} 
                           />
-                          <input 
-                            type="number" 
-                            required
-                            min="0"
-                            placeholder="Stock"
-                            value={sizeObj.stock}
-                            onChange={(e) => updateSize(colorVariant.id, sizeIndex, 'stock', parseInt(e.target.value))}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #d1d5db', width: '80px' }} 
-                          />
+                          <div style={{ position: 'relative', width: '90px' }}>
+                            <input 
+                              type="number" 
+                              required
+                              min="0"
+                              placeholder="Stock"
+                              value={sizeObj.stock}
+                              onChange={(e) => updateSize(colorVariant.id, sizeIndex, 'stock', parseInt(e.target.value) || 0)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                border: '1px solid #d4d4d8',
+                                fontSize: '0.9rem',
+                                textAlign: 'right'
+                              }} 
+                            />
+                          </div>
                           {colorVariant.sizes.length > 1 && (
                             <button 
                               type="button" 
                               onClick={() => removeSize(colorVariant.id, sizeIndex)}
-                              style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', width: '24px' }}
+                              style={{
+                                background: '#f4f4f5',
+                                border: '1px solid #e4e4e7',
+                                color: '#71717a',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                width: '32px',
+                                height: '32px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.9rem',
+                                flexShrink: 0
+                              }}
+                              title="Supprimer la taille"
                             >
-                              X
+                              ✕
                             </button>
                           )}
                         </div>
@@ -292,15 +473,50 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
           <button 
             type="button" 
             onClick={addColorVariant}
-            style={{ marginTop: '16px', padding: '10px 16px', backgroundColor: '#1e3a5f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '500' }}
+            style={{
+              marginTop: '16px',
+              padding: '10px 18px',
+              backgroundColor: '#ffffff',
+              color: '#09090b',
+              border: '1px solid #d4d4d8',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
           >
-            + Ajouter une autre couleur
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Ajouter une autre couleur
           </button>
         </div>
 
-        <div style={{ marginTop: '16px' }}>
-          <button type="submit" disabled={isSubmitting} style={{ backgroundColor: isSubmitting ? '#9ca3af' : '#10b981', color: '#fff', padding: '14px 24px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold', width: '100%', fontSize: '1.1rem' }}>
-            {isSubmitting ? 'Création en cours...' : 'Enregistrer le produit'}
+        {/* Submit */}
+        <div style={{ marginTop: '8px' }}>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            style={{
+              backgroundColor: isSubmitting ? '#a1a1aa' : '#09090b',
+              color: '#ffffff',
+              padding: '14px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              fontWeight: 700,
+              width: '100%',
+              fontSize: '1rem',
+              letterSpacing: '0.03em',
+              transition: 'background-color 0.2s ease',
+              minHeight: '48px'
+            }}
+          >
+            {isSubmitting ? 'Publication en cours...' : 'Enregistrer et publier le produit'}
           </button>
         </div>
       </form>

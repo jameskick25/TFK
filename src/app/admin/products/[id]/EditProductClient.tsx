@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateProductInfo, deleteProduct } from '@/app/actions/admin';
 
-export default function EditProductClient({ product, categories }: { product: any, categories: any[] }) {
+export default function EditProductClient({ product, categories }: { product: any; categories: any[] }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -45,85 +45,265 @@ export default function EditProductClient({ product, categories }: { product: an
   };
 
   return (
-    <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ margin: 0, color: '#111827' }}>Modifier le produit : {product.name}</h2>
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '14px',
+        padding: '24px',
+        border: '1px solid #e4e4e7',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        marginBottom: '40px'
+      }}
+    >
+      {/* Header with Title and Delete */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}
+      >
+        <div>
+          <span
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--accent)',
+              display: 'block',
+              marginBottom: '4px'
+            }}
+          >
+            Fiche Produit
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              color: '#09090b',
+              fontSize: '1.6rem',
+              fontWeight: 800,
+              fontFamily: 'var(--font-display)',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            {product.name}
+          </h1>
+        </div>
+
         <button 
+          type="button"
           onClick={handleDelete}
           disabled={isDeleting}
-          style={{ backgroundColor: '#ef4444', color: '#fff', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+          style={{
+            backgroundColor: '#fee2e2',
+            color: '#b91c1c',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: '1px solid #fecaca',
+            cursor: isDeleting ? 'not-allowed' : 'pointer',
+            fontWeight: 600,
+            fontSize: '0.82rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
         >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
           {isDeleting ? 'Suppression...' : 'Supprimer le produit'}
         </button>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontWeight: '500', color: '#374151' }}>Nom du produit</label>
-          <input type="text" name="name" defaultValue={product.name} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+            Nom du produit *
+          </label>
+          <input
+            type="text"
+            name="name"
+            defaultValue={product.name}
+            required
+            style={{
+              padding: '11px 14px',
+              borderRadius: '8px',
+              border: '1px solid #d4d4d8',
+              fontSize: '1rem',
+              outline: 'none',
+              backgroundColor: '#ffffff'
+            }}
+          />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontWeight: '500', color: '#374151' }}>Description</label>
-          <textarea name="description" defaultValue={product.description || ''} rows={4} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }}></textarea>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+            Description
+          </label>
+          <textarea
+            name="description"
+            defaultValue={product.description || ''}
+            rows={4}
+            style={{
+              padding: '11px 14px',
+              borderRadius: '8px',
+              border: '1px solid #d4d4d8',
+              fontSize: '0.95rem',
+              outline: 'none',
+              backgroundColor: '#ffffff',
+              resize: 'vertical'
+            }}
+          />
         </div>
 
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-            <label style={{ fontWeight: '500', color: '#374151' }}>Prix (DZD)</label>
-            <input type="number" name="price" defaultValue={product.price} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+        <div className="admin-form-row" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '180px' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+              Prix (DZD) *
+            </label>
+            <input
+              type="number"
+              name="price"
+              defaultValue={product.price}
+              required
+              min="0"
+              style={{
+                padding: '11px 14px',
+                borderRadius: '8px',
+                border: '1px solid #d4d4d8',
+                fontSize: '1rem',
+                outline: 'none',
+                backgroundColor: '#ffffff'
+              }}
+            />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-            <label style={{ fontWeight: '500', color: '#374151' }}>Ancien Prix (DZD) - Optionnel</label>
-            <input type="number" name="old_price" defaultValue={product.old_price || ''} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+
+          <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '180px' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+              Ancien Prix (DZD) <span style={{ color: '#a1a1aa', fontWeight: 400 }}>(Optionnel)</span>
+            </label>
+            <input
+              type="number"
+              name="old_price"
+              defaultValue={product.old_price || ''}
+              min="0"
+              placeholder="Ex: 4000"
+              style={{
+                padding: '11px 14px',
+                borderRadius: '8px',
+                border: '1px solid #d4d4d8',
+                fontSize: '1rem',
+                outline: 'none',
+                backgroundColor: '#ffffff'
+              }}
+            />
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-            <label style={{ fontWeight: '500', color: '#374151' }}>Catégorie</label>
-            <select name="category_id" defaultValue={product.category_id} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
+        <div className="admin-form-row" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '180px' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+              Catégorie *
+            </label>
+            <select
+              name="category_id"
+              defaultValue={product.category_id}
+              required
+              style={{
+                padding: '11px 14px',
+                borderRadius: '8px',
+                border: '1px solid #d4d4d8',
+                fontSize: '0.95rem',
+                outline: 'none',
+                backgroundColor: '#ffffff',
+                height: '46px'
+              }}
+            >
               <option value="">Sélectionnez une catégorie</option>
               {categories?.map(cat => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-            <label style={{ fontWeight: '500', color: '#374151' }}>Statut</label>
-            <select name="is_active" defaultValue={product.is_active ? 'true' : 'false'} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
+
+          <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '180px' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+              Statut d'affichage *
+            </label>
+            <select
+              name="is_active"
+              defaultValue={product.is_active ? 'true' : 'false'}
+              required
+              style={{
+                padding: '11px 14px',
+                borderRadius: '8px',
+                border: '1px solid #d4d4d8',
+                fontSize: '0.95rem',
+                outline: 'none',
+                backgroundColor: '#ffffff',
+                height: '46px'
+              }}
+            >
               <option value="true">Actif (Visible sur le site)</option>
               <option value="false">Inactif (Masqué)</option>
             </select>
           </div>
         </div>
 
-        <div style={{ padding: '16px', backgroundColor: '#e0e7ff', borderRadius: '8px', border: '1px solid #c7d2fe' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+        <div
+          style={{
+            padding: '16px',
+            backgroundColor: '#f8fafc',
+            borderRadius: '10px',
+            border: '1px solid #e2e8f0'
+          }}
+        >
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
             <input 
               type="checkbox" 
               name="show_colors_separately" 
               value="true" 
               defaultChecked={product.show_colors_separately}
-              style={{ width: '20px', height: '20px', accentColor: '#4f46e5' }}
+              style={{ width: '18px', height: '18px', accentColor: '#09090b' }}
             />
-            <span style={{ fontWeight: 600, color: '#312e81', fontSize: '0.95rem' }}>
+            <span style={{ fontWeight: 600, color: '#09090b', fontSize: '0.92rem' }}>
               Afficher chaque couleur comme un produit distinct dans le catalogue
             </span>
           </label>
-          <p style={{ margin: '8px 0 0 32px', fontSize: '0.85rem', color: '#4f46e5' }}>
-            Si coché, les couleurs cachées apparaîtront séparément dans la page "Produits" et la page d'accueil.
+          <p style={{ margin: '6px 0 0 28px', fontSize: '0.82rem', color: '#64748b' }}>
+            Si coché, les variantes couleurs apparaîtront individuellement sur la boutique et les filtres.
           </p>
         </div>
 
-        <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
-          <p style={{ margin: 0, color: '#4b5563', fontSize: '0.9rem' }}>
-            <strong>Note :</strong> Pour modifier le stock et les variantes, veuillez utiliser l'onglet <strong>Gestion de Stock</strong> dans le menu latéral. Les images ne peuvent pas être modifiées après création pour le moment.
+        <div style={{ padding: '14px 16px', backgroundColor: '#fafafa', borderRadius: '8px', border: '1px solid #f4f4f5' }}>
+          <p style={{ margin: 0, color: '#71717a', fontSize: '0.85rem' }}>
+            <strong>Note :</strong> Pour modifier le stock par taille et couleur, rendez-vous dans l&apos;onglet <strong>Gestion de Stock</strong> du menu.
           </p>
         </div>
 
-        <div style={{ marginTop: '16px' }}>
-          <button type="submit" disabled={isSubmitting} style={{ backgroundColor: isSubmitting ? '#9ca3af' : '#4f46e5', color: '#fff', padding: '14px 24px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold', width: '100%', fontSize: '1.1rem' }}>
+        <div style={{ marginTop: '8px' }}>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            style={{
+              backgroundColor: isSubmitting ? '#a1a1aa' : '#09090b',
+              color: '#ffffff',
+              padding: '14px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              fontWeight: 700,
+              width: '100%',
+              fontSize: '1rem',
+              letterSpacing: '0.02em',
+              minHeight: '48px'
+            }}
+          >
             {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
           </button>
         </div>

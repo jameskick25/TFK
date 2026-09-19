@@ -41,14 +41,38 @@ export default async function StockPage() {
   }) || [];
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px', gap: '16px' }}>
-        <h1 style={{ fontSize: '2rem', color: '#1a1f36', margin: 0 }}>Gestion des Stocks</h1>
+    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '24px' }}>
+        <span
+          style={{
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--accent)',
+            display: 'block',
+            marginBottom: '4px'
+          }}
+        >
+          Inventaire & Logistique
+        </span>
+        <h1
+          style={{
+            fontSize: '1.85rem',
+            fontWeight: 800,
+            color: '#09090b',
+            margin: 0,
+            fontFamily: 'var(--font-display)',
+            letterSpacing: '-0.02em'
+          }}
+        >
+          Gestion des Stocks
+        </h1>
+        <p style={{ color: '#71717a', fontSize: '0.92rem', marginTop: '6px' }}>
+          Ajustez directement les quantités par couleur et taille dans la matrice. Cliquez ensuite sur &quot;Enregistrer&quot;.
+        </p>
       </div>
-      
-      <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-        Modifiez directement les quantités dans le tableau. Les changements sont enregistrés automatiquement.
-      </p>
 
       <StockTable initialVariants={formattedVariants} />
     </div>

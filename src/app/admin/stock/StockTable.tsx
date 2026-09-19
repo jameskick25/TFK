@@ -58,32 +58,15 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
 
   const handleExportCSV = () => {
     let csvContent = "Catégorie,Produit,Couleur,Taille,Stock\n";
-    
-    const sortedVariants = [...variants].sort((a, b) => {
-      if (a.categoryName !== b.categoryName) return a.categoryName.localeCompare(b.categoryName);
-      if (a.productName !== b.productName) return a.productName.localeCompare(b.productName);
-      if (a.color !== b.color) return a.color.localeCompare(b.color);
-      
-      const indexA = SIZE_ORDER.indexOf(a.size);
-      const indexB = SIZE_ORDER.indexOf(b.size);
-      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-      return a.size.localeCompare(b.size);
+    variants.forEach(v => {
+      csvContent += `"${v.categoryName}","${v.productName}","${v.color}","${v.size}",${getStock(v.id)}\n`;
     });
 
-    sortedVariants.forEach(v => {
-      const cat = `"${v.categoryName.replace(/"/g, '""')}"`;
-      const prod = `"${v.productName.replace(/"/g, '""')}"`;
-      const col = `"${v.color.replace(/"/g, '""')}"`;
-      const size = `"${v.size.replace(/"/g, '""')}"`;
-      const stock = getStock(v.id);
-      csvContent += `${cat},${prod},${col},${size},${stock}\n`;
-    });
-
-    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `stock_tfk_store_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `stock_tfk_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -107,22 +90,22 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
   return (
     <div>
       {/* Category Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '6px' }}>
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
             style={{
-              padding: '6px 12px',
+              padding: '8px 16px',
               borderRadius: '20px',
-              border: '1px solid #d1d5db',
-              background: activeCategory === cat ? '#111827' : '#fff',
-              color: activeCategory === cat ? '#fff' : '#374151',
+              border: '1px solid #d4d4d8',
+              background: activeCategory === cat ? '#09090b' : '#ffffff',
+              color: activeCategory === cat ? '#ffffff' : '#3f3f46',
               fontWeight: 600,
               fontSize: '0.85rem',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s ease'
             }}
           >
             {cat}
@@ -131,37 +114,68 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
       </div>
 
       {/* Sticky Top Bar for Saving */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#fff', padding: '12px 16px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div
+        style={{
+          position: 'sticky',
+          top: '64px',
+          zIndex: 10,
+          backgroundColor: '#ffffff',
+          padding: '14px 18px',
+          borderRadius: '10px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          border: '1px solid #e4e4e7',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button 
             onClick={handleSaveAll}
             disabled={!hasUnsavedChanges || isSaving}
             style={{ 
-              padding: '8px 16px', 
-              backgroundColor: hasUnsavedChanges ? '#2563eb' : '#d1d5db', 
-              color: '#fff', 
+              padding: '8px 18px', 
+              backgroundColor: hasUnsavedChanges ? '#09090b' : '#e4e4e7', 
+              color: hasUnsavedChanges ? '#ffffff' : '#a1a1aa', 
               border: 'none', 
-              borderRadius: '4px', 
-              fontWeight: 'bold',
-              fontSize: '0.85rem',
+              borderRadius: '6px', 
+              fontWeight: 700,
+              fontSize: '0.88rem',
               cursor: hasUnsavedChanges && !isSaving ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
-            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            {isSaving ? 'Enregistrement...' : 'Enregistrer le stock'}
           </button>
-          {saveMessage && <span style={{ fontWeight: 500, fontSize: '0.85rem', color: saveMessage.startsWith('Erreur') ? '#ef4444' : '#10b981' }}>{saveMessage}</span>}
+
+          {saveMessage && (
+            <span style={{ fontWeight: 600, fontSize: '0.85rem', color: saveMessage.startsWith('Erreur') ? '#dc2626' : '#16a34a' }}>
+              {saveMessage}
+            </span>
+          )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <button 
             onClick={handleExportCSV}
             style={{ 
-              padding: '6px 12px', 
-              backgroundColor: '#10b981', 
-              color: '#fff', 
-              border: 'none', 
-              borderRadius: '4px', 
-              fontWeight: 'bold',
-              fontSize: '0.85rem',
+              padding: '7px 14px', 
+              backgroundColor: '#ffffff', 
+              color: '#3f3f46', 
+              border: '1px solid #d4d4d8', 
+              borderRadius: '6px', 
+              fontWeight: 600,
+              fontSize: '0.82rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -173,17 +187,30 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Exporter (CSV)
+            Exporter CSV
           </button>
-          <div style={{ backgroundColor: '#fef3c7', padding: '6px 12px', borderRadius: '4px', fontWeight: 'bold', color: '#92400e', border: '1px solid #fde68a', fontSize: '0.85rem', textTransform: 'uppercase' }}>
-            {activeCategory} RESTANTS : {totalCategoryStock}
+
+          <div
+            style={{
+              backgroundColor: '#fef3c7',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontWeight: 700,
+              color: '#92400e',
+              border: '1px solid #fde68a',
+              fontSize: '0.82rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
+            }}
+          >
+            {activeCategory} : {totalCategoryStock} pièces
           </div>
         </div>
       </div>
 
+      {/* Matrix Cards for Products */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {Object.entries(groupedVariants).map(([productName, productVariants]) => {
-          
           const uniqueSizes = Array.from(new Set(productVariants.map(v => v.size))).sort((a, b) => {
             const indexA = SIZE_ORDER.indexOf(a);
             const indexB = SIZE_ORDER.indexOf(b);
@@ -196,25 +223,64 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
           const uniqueColors = Array.from(new Set(productVariants.map(v => v.color)));
 
           return (
-            <div key={productName} style={{ backgroundColor: '#fff', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
-              <div style={{ backgroundColor: '#4f46e5', color: '#fff', padding: '8px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                {productName}
+            <div
+              key={productName}
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                border: '1px solid #e4e4e7'
+              }}
+            >
+              {/* Product Header */}
+              <div
+                style={{
+                  backgroundColor: '#09090b',
+                  color: '#ffffff',
+                  padding: '12px 18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontWeight: 700,
+                  fontSize: '0.92rem'
+                }}
+              >
+                <span>{productName}</span>
+                <span style={{ fontSize: '0.78rem', color: '#a1a1aa', fontWeight: 500 }}>
+                  {uniqueColors.length} couleur(s)
+                </span>
               </div>
               
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '0.8rem' }}>
+              {/* Responsive Matrix */}
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', minWidth: '400px' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#1e293b', color: '#fff' }}>
-                      <th style={{ padding: '6px', width: '120px', borderRight: '1px solid #334155', textTransform: 'uppercase' }}>Couleur</th>
+                    <tr style={{ backgroundColor: '#fafafa', borderBottom: '1px solid #e4e4e7' }}>
+                      <th style={{ padding: '10px 14px', width: '130px', textAlign: 'left', borderRight: '1px solid #e4e4e7', fontSize: '0.8rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Couleur
+                      </th>
                       {uniqueSizes.map(size => (
-                        <th key={size} style={{ padding: '6px', minWidth: '45px', borderRight: '1px solid #334155' }}>{size}</th>
+                        <th key={size} style={{ padding: '10px 14px', minWidth: '60px', borderRight: '1px solid #e4e4e7', fontSize: '0.82rem', color: '#3f3f46', fontWeight: 700 }}>
+                          {size}
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {uniqueColors.map((color, idx) => (
-                      <tr key={color} style={{ backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#f1f5f9' }}>
-                        <td style={{ padding: '8px', fontWeight: 'bold', color: '#0f172a', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', textTransform: 'uppercase' }}>
+                      <tr key={color} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                        <td
+                          style={{
+                            padding: '10px 14px',
+                            fontWeight: 600,
+                            color: '#09090b',
+                            borderRight: '1px solid #e4e4e7',
+                            borderBottom: '1px solid #e4e4e7',
+                            fontSize: '0.88rem',
+                            textAlign: 'left'
+                          }}
+                        >
                           {color}
                         </td>
                         
@@ -222,7 +288,11 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
                           const variant = productVariants.find(v => v.color === color && v.size === size);
                           
                           if (!variant) {
-                            return <td key={size} style={{ padding: '6px', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', color: '#94a3b8' }}>—</td>;
+                            return (
+                              <td key={size} style={{ padding: '8px', borderRight: '1px solid #e4e4e7', borderBottom: '1px solid #e4e4e7', color: '#d4d4d8' }}>
+                                —
+                              </td>
+                            );
                           }
 
                           const stockValue = getStock(variant.id);
@@ -230,22 +300,31 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
                           const isZero = stockValue === 0;
 
                           return (
-                            <td key={size} style={{ padding: '2px', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', backgroundColor: isZero ? '#fee2e2' : '#dcfce3' }}>
+                            <td
+                              key={size}
+                              style={{
+                                padding: '4px',
+                                borderRight: '1px solid #e4e4e7',
+                                borderBottom: '1px solid #e4e4e7',
+                                backgroundColor: isZero ? '#fef2f2' : '#f0fdf4'
+                              }}
+                            >
                               <input
                                 type="number"
                                 value={stockValue}
                                 onChange={(e) => handleStockChange(variant.id, e.target.value)}
                                 style={{
                                   width: '100%',
-                                  padding: '6px 2px',
+                                  padding: '8px 2px',
                                   textAlign: 'center',
-                                  border: 'none',
+                                  border: isDrafted ? '2px solid #09090b' : '1px solid transparent',
                                   backgroundColor: 'transparent',
-                                  fontWeight: 'bold',
-                                  color: isZero ? '#b91c1c' : '#166534',
-                                  outline: isDrafted ? '2px solid #2563eb' : 'none',
-                                  borderRadius: '2px',
-                                  fontSize: '0.85rem'
+                                  fontWeight: 800,
+                                  color: isZero ? '#b91c1c' : '#15803d',
+                                  borderRadius: '4px',
+                                  fontSize: '1rem',
+                                  outline: 'none',
+                                  minHeight: '36px'
                                 }}
                                 min="0"
                               />
@@ -262,7 +341,7 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
         })}
 
         {categoryVariants.length === 0 && (
-          <div style={{ padding: '30px', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e4e4e7', padding: '36px', textAlign: 'center', color: '#71717a' }}>
             Aucun produit dans cette catégorie.
           </div>
         )}

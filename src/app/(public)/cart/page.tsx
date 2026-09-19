@@ -306,7 +306,7 @@ export default function CartPage() {
                 </div>
 
                 <button type="submit" className="btn btn-primary" disabled={isSubmitting || items.length === 0} style={{ width: '100%', padding: '14px', background: '#2c2c3e', color: '#fff', border: 'none', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600, fontSize: '1rem' }}>
-                  {isSubmitting ? '⏳ Chargement en cours...' : 'COMMANDER'}
+                  {isSubmitting ? 'Traitement en cours...' : 'COMMANDER'}
                 </button>
               </form>
             </div>
