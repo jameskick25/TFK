@@ -2,7 +2,6 @@
 
 import { createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { compressAndUploadImage } from './compress-and-upload';
 
 function generateSlug(text: string) {
   return text
@@ -65,6 +64,7 @@ export async function createProduct(formData: FormData) {
       const image = formData.get(`image_${colorName}`) as File;
       
       if (image && image.size > 0) {
+        const { compressAndUploadImage } = await import('./compress-and-upload');
         const storageName = `${product.id}-${colorName || 'main'}-${Math.floor(Math.random() * 10000)}`;
         const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(image, storageName);
 
@@ -100,7 +100,9 @@ export async function createProduct(formData: FormData) {
     revalidatePath('/admin/products');
     revalidatePath('/admin/stock');
     revalidatePath('/catalog');
-    revalidatePath('/', 'layout');
+    revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
 
     return { success: true };
   } catch (err: any) {
@@ -160,7 +162,7 @@ export async function createCategory(formData: FormData) {
     revalidatePath('/admin/categories');
     revalidatePath('/admin/products/new');
     revalidatePath('/catalog');
-    revalidatePath('/', 'layout');
+    revalidatePath('/');
 
     return { success: true, category: data };
   } catch (err: any) {
@@ -204,7 +206,7 @@ export async function updateCategory(formData: FormData) {
     revalidatePath('/admin/categories');
     revalidatePath('/admin/products/new');
     revalidatePath('/catalog');
-    revalidatePath('/', 'layout');
+    revalidatePath('/');
 
     return { success: true, category: data };
   } catch (err: any) {
@@ -252,7 +254,7 @@ export async function deleteCategory(idOrFormData: FormData | string) {
     revalidatePath('/admin/categories');
     revalidatePath('/admin/products/new');
     revalidatePath('/catalog');
-    revalidatePath('/', 'layout');
+    revalidatePath('/');
 
     return { success: true };
   } catch (err: any) {
@@ -346,7 +348,9 @@ export async function updateProductInfo(formData: FormData) {
     revalidatePath('/admin/products');
     revalidatePath(`/admin/products/${id}`);
     revalidatePath('/catalog');
-    revalidatePath('/', 'layout');
+    revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
 
     return { success: true };
   } catch (err: any) {
@@ -389,7 +393,9 @@ export async function deleteProduct(productId: string) {
     
     revalidatePath('/admin/products');
     revalidatePath('/catalog');
-    revalidatePath('/', 'layout');
+    revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };

@@ -1,7 +1,6 @@
 'use server';
 
 import { createAdminClient } from '@/utils/supabase/server';
-import sharp from 'sharp';
 import { revalidatePath } from 'next/cache';
 import https from 'https';
 import http from 'http';
@@ -117,7 +116,14 @@ export async function optimizeSingleImage(imageId: string, imageUrl: string) {
     const originalSizeKb = Math.round(originalBuffer.length / 1024);
 
     // 2. Compress with sharp
-    const compressedBuffer = await sharp(originalBuffer)
+    let sharpModule: any;
+    try {
+      sharpModule = (await import('sharp')).default;
+    } catch (e: any) {
+      return { success: false, error: 'Sharp non disponible dans cet environnement' };
+    }
+
+    const compressedBuffer = await sharpModule(originalBuffer)
       .resize({ width: 800, withoutEnlargement: true })
       .webp({ quality: 75 })
       .toBuffer();
@@ -204,7 +210,14 @@ export async function dryRunOptimize(imageUrl: string) {
     const originalSizeKb = Math.round(originalBuffer.length / 1024);
 
     // 2. Compress
-    const compressedBuffer = await sharp(originalBuffer)
+    let sharpModule: any;
+    try {
+      sharpModule = (await import('sharp')).default;
+    } catch (e: any) {
+      return { success: false, error: 'Sharp non disponible dans cet environnement' };
+    }
+
+    const compressedBuffer = await sharpModule(originalBuffer)
       .resize({ width: 800, withoutEnlargement: true })
       .webp({ quality: 75 })
       .toBuffer();
@@ -252,7 +265,7 @@ export async function dryRunOptimize(imageUrl: string) {
       debug: [
         `Original URL: ${imageUrl.split('?')[0]}`,
         `Sharp output valid WebP: RIFF=${riffOk} WEBP=${webpOk}`,
-        `Sharp output first 12 bytes: ${Array.from(header).map(b => b.toString(16).padStart(2, '0')).join(' ')}`,
+        `Sharp output first 12 bytes: ${Array.from(header).map((b: any) => Number(b).toString(16).padStart(2, '0')).join(' ')}`,
         `Compressed size: ${compressedBuffer.length} bytes`,
         `Test file uploaded as: "${testFileName}"`,
         `Test URL: ${testUrl}`,

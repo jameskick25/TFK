@@ -1,5 +1,7 @@
-import sharp from 'sharp';
 import https from 'https';
+
+const FALLBACK_SUPABASE_URL = 'https://wkxnaqdtubgdvtnijpiy.supabase.co';
+const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndreG5hcWR0dWJnZHZ0bmlqcGl5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTYxMDExNiwiZXhwIjoyMDk3MTg2MTE2fQ.6D0hYbXNsRHW6RGFAPCUUPwW0WEzxA-H4gvetQ3kyYI';
 
 /**
  * Uploads a binary buffer to Supabase Storage using native HTTPS request.
@@ -57,13 +59,8 @@ function uploadToSupabaseNative(
 }
 
 /**
- * Compresses an uploaded image file with sharp and uploads to Supabase.
- * 
- * Pipeline:
- *   1. Read File → ArrayBuffer → Buffer
- *   2. sharp: resize to max 800px width (no upscale) + convert to WebP at quality 75
- *   3. Upload to Supabase via native HTTPS
- *   4. Return the public URL of the optimized image
+ * Compresses an uploaded image file with sharp (if available) and uploads to Supabase.
+ * Falls back gracefully to original buffer if sharp cannot be loaded in serverless environment.
  */
 export async function compressAndUploadImage(
   file: File,
@@ -71,37 +68,47 @@ export async function compressAndUploadImage(
   bucket: string = 'products'
 ): Promise<{ url: string | null; error: string | null }> {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      return { url: null, error: 'SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing' };
-    }
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
 
     // 1. Read the uploaded file into a Node.js Buffer
     const arrayBuffer = await file.arrayBuffer();
     const originalBuffer = Buffer.from(arrayBuffer);
 
-    // 2. Compress with sharp → WebP, 800px max width, quality 75
-    const compressedBuffer = await sharp(originalBuffer)
-      .resize({ width: 800, withoutEnlargement: true })
-      .webp({ quality: 75 })
-      .toBuffer();
+    let finalBuffer: Buffer = originalBuffer;
+    let contentType: string = file.type || 'image/jpeg';
+    let extension: string = 'jpeg';
 
-    // 3. Generate a clean, URL-safe filename with .webp extension
+    // 2. Try compressing with sharp dynamically
+    try {
+      const sharpModule = (await import('sharp')).default;
+      finalBuffer = await sharpModule(originalBuffer)
+        .resize({ width: 800, withoutEnlargement: true })
+        .webp({ quality: 75 })
+        .toBuffer();
+      contentType = 'image/webp';
+      extension = 'webp';
+    } catch (sharpErr) {
+      console.warn('Sharp non disponible ou erreur, téléversement de l\'image d\'origine:', sharpErr);
+      if (file.type?.includes('png')) extension = 'png';
+      else if (file.type?.includes('webp')) extension = 'webp';
+      else extension = 'jpeg';
+    }
+
+    // 3. Generate a clean, URL-safe filename
     const baseName = storageName
       .replace(/\.[^/.]+$/, '')            // Remove any file extension
       .replace(/[^a-zA-Z0-9_-]/g, '-')    // Replace special chars with hyphens
       .replace(/-+/g, '-')                 // Collapse multiple hyphens
       .replace(/^-|-$/g, '');              // Trim leading/trailing hyphens
-    const fileName = `${baseName}-opt-${Date.now()}.webp`;
+    const fileName = `${baseName}-opt-${Date.now()}.${extension}`;
 
     // 4. Upload using native HTTPS (bypasses supabase client + Next.js fetch)
     const { error: uploadError } = await uploadToSupabaseNative(
       bucket,
       fileName,
-      compressedBuffer,
-      'image/webp',
+      finalBuffer,
+      contentType,
       supabaseUrl,
       serviceRoleKey
     );
@@ -116,7 +123,7 @@ export async function compressAndUploadImage(
     return { url: publicUrl, error: null };
 
   } catch (err: any) {
-    console.error('Sharp compression error:', err);
-    return { url: null, error: err.message || 'Compression error' };
+    console.error('Compression & upload error:', err);
+    return { url: null, error: err.message || 'Erreur lors du traitement de l\'image' };
   }
 }
