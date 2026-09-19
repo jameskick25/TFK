@@ -72,9 +72,10 @@ export default function CartDrawer() {
               padding: '4px',
               lineHeight: 1,
             }}
-            aria-label="Fermer le panier"
-          >
-            ✕
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
@@ -82,7 +83,13 @@ export default function CartDrawer() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
           {items.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted, #6b7280)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🛍</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+              </div>
               <p>{t('empty_cart')}</p>
               <Link
                 href="/catalog"
@@ -204,7 +211,10 @@ export default function CartDrawer() {
                   }}
                   aria-label={`Supprimer ${item.name}`}
                 >
-                  ✕
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
                 </button>
               </div>
             ))

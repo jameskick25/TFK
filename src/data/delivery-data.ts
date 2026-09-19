@@ -84,7 +84,7 @@ export const deliveryPrices: Record<string, { office: number; home: number }> = 
   "13": { office: 400, home: 700 },
   "14": { office: 400, home: 700 },
   "15": { office: 400, home: 600 },
-  "16": { office: 300, home: 500 },
+  "16": { office: 300, home: 400 },
   "17": { office: 500, home: 800 },
   "18": { office: 400, home: 700 },
   "19": { office: 400, home: 680 },

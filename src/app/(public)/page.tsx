@@ -196,17 +196,32 @@ export default async function Home() {
           <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: '36px' }}>
             Chez TFK Store, nous accordons une importance primordiale au choix des tissus et à la précision des coupes. Nos vêtements sont sélectionnés pour vous garantir un confort exceptionnel et une durabilité sans compromis.
           </p>
-          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.95)' }}>
-              🚚 Livraison 58 Wilayas
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.95)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="1" />
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+              Livraison 58 Wilayas
             </span>
             <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.95)' }}>
-              💳 Paiement à la Livraison
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.95)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+              Paiement à la Livraison
             </span>
             <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.95)' }}>
-              🔄 Échange Facile
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.95)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+              Échange Facile
             </span>
           </div>
         </div>

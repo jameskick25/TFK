@@ -183,7 +183,7 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
               <option value="">Sélectionnez une catégorie</option>
               {categories?.map(cat => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.name} {getSectionForCategory(cat.slug) === 'accessories' ? '📱 (Accessoires)' : '👕 (Vêtements)'}
+                  {cat.name} ({getSectionForCategory(cat.slug) === 'accessories' ? 'Accessoires' : 'Vêtements'})
                 </option>
               ))}
             </select>

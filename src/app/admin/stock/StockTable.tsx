@@ -48,9 +48,9 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
       // Update local variants with draft changes
       setVariants(prev => prev.map(v => draftStocks[v.id] !== undefined ? { ...v, stock: draftStocks[v.id] } : v));
       setDraftStocks({});
-      setSaveMessage('✅ Modifications enregistrées !');
+      setSaveMessage('Modifications enregistrées avec succès !');
     } else {
-      setSaveMessage('❌ Erreur : ' + result.error);
+      setSaveMessage('Erreur : ' + result.error);
     }
     
     setIsSaving(false);
@@ -147,9 +147,9 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
               cursor: hasUnsavedChanges && !isSaving ? 'pointer' : 'not-allowed',
             }}
           >
-            {isSaving ? '⏳' : '💾 Enregistrer'}
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
           </button>
-          {saveMessage && <span style={{ fontWeight: 500, fontSize: '0.85rem', color: saveMessage.startsWith('✅') ? '#10b981' : '#ef4444' }}>{saveMessage}</span>}
+          {saveMessage && <span style={{ fontWeight: 500, fontSize: '0.85rem', color: saveMessage.startsWith('Erreur') ? '#ef4444' : '#10b981' }}>{saveMessage}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button 
@@ -168,10 +168,15 @@ export default function StockTable({ initialVariants }: { initialVariants: Varia
               gap: '6px'
             }}
           >
-            📥 Exporter (CSV)
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Exporter (CSV)
           </button>
           <div style={{ backgroundColor: '#fef3c7', padding: '6px 12px', borderRadius: '4px', fontWeight: 'bold', color: '#92400e', border: '1px solid #fde68a', fontSize: '0.85rem', textTransform: 'uppercase' }}>
-            📦 {activeCategory} RESTANTS : {totalCategoryStock}
+            {activeCategory} RESTANTS : {totalCategoryStock}
           </div>
         </div>
       </div>

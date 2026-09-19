@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { compressAndUploadImage } from './compress-and-upload';
 
 function generateSlug(text: string) {
@@ -98,87 +99,99 @@ export async function createProduct(formData: FormData) {
 export async function createCategory(formData: FormData) {
   const supabase = await createAdminClient();
   const name = formData.get('name') as string;
-  const imageFile = formData.get('image') as File;
+  const customSlug = formData.get('slug') as string;
   
-  if (!name) return;
-  
-  const slug = generateSlug(name);
-  let image_url = null;
-
-  if (imageFile && imageFile.size > 0) {
-    const storageName = `category-${slug}-${Math.floor(Math.random() * 10000)}`;
-    const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(imageFile, storageName);
-    
-    if (!uploadError && optimizedUrl) {
-      image_url = optimizedUrl;
-    } else {
-      console.error('Erreur upload category image', uploadError);
-    }
+  if (!name || !name.trim()) {
+    return { success: false, error: 'Le nom de la catégorie est obligatoire' };
   }
-  
-  await supabase.from('categories').insert({ name, slug, image_url });
-  redirect('/admin/categories');
-}
 
-export async function deleteCategory(formData: FormData) {
-  const supabase = await createAdminClient();
-  const id = formData.get('id') as string;
-  
-  if (!id) return;
+  let slug = customSlug?.trim() ? generateSlug(customSlug) : generateSlug(name);
+  if (!slug) slug = 'cat-' + Math.floor(Math.random() * 10000);
 
-  // Get image URL to delete from storage
-  const { data: cat } = await supabase
+  // Vérifier si le slug existe déjà
+  const { data: existing } = await supabase.from('categories').select('id').eq('slug', slug).maybeSingle();
+  if (existing) {
+    slug = `${slug}-${Math.floor(Math.random() * 1000)}`;
+  }
+
+  const { data, error } = await supabase
     .from('categories')
-    .select('image_url')
-    .eq('id', id)
+    .insert({
+      name: name.trim(),
+      slug,
+      display_order: 100
+    })
+    .select()
     .single();
 
-  if (cat?.image_url) {
-    const parts = cat.image_url.split('/');
-    const fileName = parts[parts.length - 1];
-    await supabase.storage.from('products').remove([fileName]);
+  if (error) {
+    console.error('Erreur lors de la création de la catégorie', error);
+    return { success: false, error: error.message };
   }
-  
-  await supabase.from('categories').delete().eq('id', id);
-  redirect('/admin/categories');
+
+  revalidatePath('/admin/categories');
+  revalidatePath('/(public)', 'layout');
+  return { success: true, category: data };
 }
 
-export async function updateCategoryImage(formData: FormData) {
+export async function updateCategory(formData: FormData) {
   const supabase = await createAdminClient();
   const id = formData.get('id') as string;
-  const imageFile = formData.get('image') as File;
+  const name = formData.get('name') as string;
+  const customSlug = formData.get('slug') as string;
 
-  if (!id || !imageFile || imageFile.size === 0) return;
-
-  // Fetch category to get slug/name for file name
-  const { data: cat } = await supabase
-    .from('categories')
-    .select('slug, image_url')
-    .eq('id', id)
-    .single();
-  
-  if (!cat) return;
-
-  // Delete old image if exists
-  if (cat.image_url) {
-    const parts = cat.image_url.split('/');
-    const oldFileName = parts[parts.length - 1];
-    await supabase.storage.from('products').remove([oldFileName]);
+  if (!id || !name?.trim()) {
+    return { success: false, error: 'ID et nom de catégorie requis' };
   }
 
-  const storageName = `category-${cat.slug}-${Math.floor(Math.random() * 10000)}`;
-  const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(imageFile, storageName);
-  
-  if (!uploadError && optimizedUrl) {
-    await supabase
-      .from('categories')
-      .update({ image_url: optimizedUrl })
-      .eq('id', id);
+  const updatePayload: { name: string; slug?: string } = {
+    name: name.trim()
+  };
+
+  if (customSlug?.trim()) {
+    updatePayload.slug = generateSlug(customSlug.trim());
+  }
+
+  const { data, error } = await supabase
+    .from('categories')
+    .update(updatePayload)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erreur lors de la mise à jour de la catégorie', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/categories');
+  revalidatePath('/(public)', 'layout');
+  return { success: true, category: data };
+}
+
+export async function deleteCategory(idOrFormData: FormData | string) {
+  const supabase = await createAdminClient();
+  let id: string;
+  if (typeof idOrFormData === 'string') {
+    id = idOrFormData;
   } else {
-    console.error('Erreur upload category image', uploadError);
+    id = idOrFormData.get('id') as string;
   }
 
-  redirect('/admin/categories');
+  if (!id) {
+    return { success: false, error: 'ID requis pour supprimer' };
+  }
+
+  const { error } = await supabase.from('categories').delete().eq('id', id);
+
+  if (error) {
+    console.error('Erreur lors de la suppression de la catégorie', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/categories');
+  revalidatePath('/(public)', 'layout');
+  return { success: true };
 }
 
 // ── Gestion Rapide des Stocks ──────────────────────────

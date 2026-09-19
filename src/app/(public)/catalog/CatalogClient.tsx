@@ -140,7 +140,7 @@ export default function CatalogClient({
           >
             <input 
               type="text"
-              placeholder={language === 'ar' ? '🔍 ابحث عن مقاس (مثل: M, 42)، لون أو اسم...' : '🔍 Rechercher une taille (ex: M, 42), une couleur ou un nom...'}
+              placeholder={language === 'ar' ? 'ابحث عن مقاس (مثل: M, 42)، لون أو اسم...' : 'Rechercher une taille (ex: M, 42), une couleur ou un nom...'}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               style={{
@@ -170,7 +170,10 @@ export default function CatalogClient({
                   justifyContent: 'center'
                 }}
               >
-                ✖
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             ) : (
               <button 
@@ -191,7 +194,7 @@ export default function CatalogClient({
           </form>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#4b5563', fontWeight: 500, fontSize: '0.95rem' }}>
-            <span>⚡ {t('filter_category')}</span>
+            <span>{t('filter_category')}</span>
           </div>
           <div className="filter-buttons" style={{ marginBottom: 0, paddingBottom: 0, justifyContent: 'flex-start' }}>
             <button 
@@ -228,7 +231,7 @@ export default function CatalogClient({
         {/* Display info */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', color: '#6b7280', fontSize: '0.9rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>📦</span> {t('showing_products')} {filteredProducts.length} {t('products_count')}
+            {t('showing_products')} {filteredProducts.length} {t('products_count')}
           </div>
         </div>
 

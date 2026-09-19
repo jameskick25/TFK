@@ -108,7 +108,7 @@ export default function EditProductClient({ product, categories }: { product: an
               style={{ width: '20px', height: '20px', accentColor: '#4f46e5' }}
             />
             <span style={{ fontWeight: 600, color: '#312e81', fontSize: '0.95rem' }}>
-              🎨 Afficher chaque couleur comme un produit distinct dans le catalogue
+              Afficher chaque couleur comme un produit distinct dans le catalogue
             </span>
           </label>
           <p style={{ margin: '8px 0 0 32px', fontSize: '0.85rem', color: '#4f46e5' }}>

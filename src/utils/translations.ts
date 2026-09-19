@@ -12,16 +12,16 @@ export const translations = {
     
     // Actions
     order: "Commander",
-    add_to_cart: "Ajoutez au panier 🛍️",
+    add_to_cart: "Ajoutez au panier",
     choose_options: "Choisir les options",
     filter_category: "Filtrer par catégorie",
     all: "Tous",
     showing_products: "Affichage de",
     products_count: "produit(s)",
     no_products: "Aucun produit dans cette catégorie.",
-    added: "✓ Ajouté !",
+    added: "Ajouté !",
     out_of_stock: "Rupture",
-    loading: "⏳ Chargement en cours...",
+    loading: "Chargement en cours...",
     
     // Product Page
     quantity: "Quantité :",
@@ -31,13 +31,13 @@ export const translations = {
     size: "Tailles :",
     
     // Checkout Form
-    form_title: "أدخل معلوماتك أسفله للطلب", // keeping it in Arabic since the user wrote it manually, but we should make it toggleable
+    form_title: "أدخل معلوماتك أسفله للطلب",
     form_title_fr: "Entrez vos informations ci-dessous pour commander",
     fullname: "Nom et prénom",
     phone: "Téléphone",
     select_wilaya: "Sélectionner une Wilaya",
-    home_delivery: "🏠 À domicile",
-    desk_delivery: "🏢 Bureau NOEST",
+    home_delivery: "À domicile",
+    desk_delivery: "Bureau NOEST",
     select_commune: "Sélectionner une Commune",
     select_desk: "Sélectionner un Bureau NOEST",
     address: "Adresse complète",
@@ -73,16 +73,16 @@ export const translations = {
     
     // Actions
     order: "اطلب الآن",
-    add_to_cart: "أضف إلى السلة 🛍️",
+    add_to_cart: "أضف إلى السلة",
     choose_options: "اختر الخيارات",
     filter_category: "تصفية حسب الفئة",
     all: "الكل",
     showing_products: "عرض",
     products_count: "منتج",
     no_products: "لا توجد منتجات في هذه الفئة.",
-    added: "✓ تم الإضافة !",
+    added: "تم الإضافة !",
     out_of_stock: "نفدت الكمية",
-    loading: "⏳ جاري التحميل...",
+    loading: "جاري التحميل...",
     
     // Product Page
     quantity: "الكمية:",
@@ -97,8 +97,8 @@ export const translations = {
     fullname: "الاسم واللقب",
     phone: "رقم الهاتف",
     select_wilaya: "اختر الولاية",
-    home_delivery: "🏠 إلى المنزل",
-    desk_delivery: "🏢 مكتب نويست",
+    home_delivery: "إلى المنزل",
+    desk_delivery: "مكتب نويست",
     select_commune: "اختر البلدية",
     select_desk: "اختر مكتب نويست",
     address: "العنوان الكامل",

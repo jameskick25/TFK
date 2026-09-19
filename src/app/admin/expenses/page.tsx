@@ -14,7 +14,7 @@ export default async function ExpensesPage() {
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, color: '#111827' }}>📉 Dépenses</h1>
+        <h1 style={{ margin: 0, color: '#111827' }}>Dépenses</h1>
       </div>
       <ExpensesClient initialExpenses={expenses || []} />
     </div>

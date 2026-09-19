@@ -217,7 +217,7 @@ export default function OptimizeImagesPage() {
   return (
     <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       <h1 style={{ fontSize: '1.6rem', marginBottom: '8px', color: '#111827', fontWeight: 800 }}>
-        📸 Optimisation des images
+        Optimisation des images
       </h1>
       <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '20px' }}>
         Compression automatique en WebP via <strong>sharp</strong> sur le serveur et transfert HTTPS sécurisé.
@@ -398,7 +398,7 @@ export default function OptimizeImagesPage() {
                           cursor: (img.status === 'success' || isBusy) ? 'default' : 'pointer', fontSize: '0.7rem'
                         }}
                       >
-                        {img.status === 'processing' ? '...' : img.status === 'success' ? '✓' : 'Go'}
+                        {img.status === 'processing' ? '...' : img.status === 'success' ? 'OK' : 'Go'}
                       </button>
                     </td>
                   </tr>

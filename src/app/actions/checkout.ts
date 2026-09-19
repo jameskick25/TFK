@@ -90,11 +90,11 @@ export async function processCheckout(formData: FormData) {
     });
 
   // 6. Send Telegram Notification
-  const msg = `🛍 <b>NOUVELLE COMMANDE</b> - ${orderTotal} DZD
-👤 Client: ${customerName} (${phone})
-📍 Livraison: ${wilaya} - ${commune} (${deliveryType === 'home' ? 'À domicile' : 'Stopdesk'})
-📦 Article: 1x ${variant.products.name} (${variantInfo})
-💸 Total: ${orderTotal} DZD`;
+  const msg = `<b>NOUVELLE COMMANDE</b> - ${orderTotal} DZD
+Client: ${customerName} (${phone})
+Livraison: ${wilaya} - ${commune} (${deliveryType === 'home' ? 'À domicile' : 'Stopdesk'})
+Article: 1x ${variant.products.name} (${variantInfo})
+Total: ${orderTotal} DZD`;
 
   await sendTelegramNotification(msg);
 
@@ -221,11 +221,12 @@ export async function processCartCheckout(formData: FormData) {
 
   // 6. Send Telegram Notification
   const articlesList = cartItems.map(i => `- ${i.quantity}x ${i.productName} (${i.variantInfo})`).join('\n');
-  const msg = `🛍 <b>NOUVELLE COMMANDE PANIER</b> - ${orderTotal} DZD
-👤 Client: ${customerName} (${phone})
-📍 Livraison: ${wilayaName || wilayaCode} - ${commune} (${deliveryType === 'home' ? 'À domicile' : 'Stopdesk'})
-📦 Articles:\n${articlesList}
-💸 Total: ${orderTotal} DZD`;
+  const msg = `<b>NOUVELLE COMMANDE PANIER</b> - ${orderTotal} DZD
+Client: ${customerName} (${phone})
+Livraison: ${wilayaName || wilayaCode} - ${commune} (${deliveryType === 'home' ? 'À domicile' : 'Stopdesk'})
+Articles:
+${articlesList}
+Total: ${orderTotal} DZD`;
 
   await sendTelegramNotification(msg);
 

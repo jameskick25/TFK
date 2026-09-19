@@ -10,7 +10,13 @@ export default function MerciPage() {
   return (
     <section className="section" style={{ textAlign: 'center', padding: '100px 20px', minHeight: '60vh', direction: isAr ? 'rtl' : 'ltr' }}>
       <div className="container">
-        <div style={{ fontSize: '4rem', marginBottom: '20px' }}>✅</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+          <div style={{ width: '72px', height: '72px', borderRadius: '50%', backgroundColor: '#ecfdf5', border: '2px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        </div>
         <h1 className="section-title">
           {isAr ? 'شكراً لطلبك!' : 'Merci pour votre commande !'}
         </h1>

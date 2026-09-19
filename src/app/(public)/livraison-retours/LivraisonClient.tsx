@@ -23,7 +23,7 @@ export default function LivraisonClient() {
     { code: '13', name: 'Tlemcen', desk: 400, home: 700 },
     { code: '14', name: 'Tiaret', desk: 400, home: 700 },
     { code: '15', name: 'Tizi Ouzou', desk: 400, home: 600 },
-    { code: '16', name: 'Alger', desk: 300, home: 500, highlight: true },
+    { code: '16', name: 'Alger', desk: 300, home: 400, highlight: true },
     { code: '17', name: 'Djelfa', desk: 500, home: 800 },
     { code: '18', name: 'Jijel', desk: 400, home: 700 },
     { code: '19', name: 'Sétif', desk: 400, home: 680 },
@@ -83,7 +83,14 @@ export default function LivraisonClient() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-            <div style={{ fontSize: '2rem', flexShrink: 0 }}>📏</div>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.3 15.3l-8.6-8.6a2 2 0 0 0-2.8 0L2.7 13.9a2 2 0 0 0 0 2.8l2.6 2.6a2 2 0 0 0 2.8 0l7.2-7.2" />
+                <path d="M14.5 8.5l1.5 1.5" />
+                <path d="M11.5 11.5l1.5 1.5" />
+                <path d="M8.5 14.5l1.5 1.5" />
+              </svg>
+            </div>
             <p style={{ margin: 0, fontSize: '1rem', color: '#374151', lineHeight: 1.6 }}>
               {isAr ? 'عند طلب المقاس (M مثلاً)، يتم إرسال المقاس الذي اخترتموه. لذلك نرجو التأكد من المقاس قبل تأكيد الطلب.' 
                    : 'Lors de la commande d\'une taille (M par exemple), la taille choisie est envoyée. Veuillez donc vérifier la taille avant de confirmer la commande.'}
@@ -91,7 +98,14 @@ export default function LivraisonClient() {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-            <div style={{ fontSize: '2rem', flexShrink: 0 }}>🚚</div>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="1" />
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+            </div>
             <p style={{ margin: 0, fontSize: '1rem', color: '#374151', lineHeight: 1.6 }}>
               {isAr ? 'في حال الرغبة في تغيير المنتج بسبب اختيار مقاس غير مناسب، يمكننا إجراء التغيير، وتكون مصاريف التوصيل الخاصة بالتغيير على الزبون.'
                    : 'Si vous souhaitez échanger le produit en raison d\'un mauvais choix de taille, nous pouvons le faire, mais les frais de livraison pour l\'échange seront à la charge du client.'}
@@ -99,7 +113,13 @@ export default function LivraisonClient() {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-            <div style={{ fontSize: '2rem', flexShrink: 0 }}>📦</div>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+              </svg>
+            </div>
             <p style={{ margin: 0, fontSize: '1rem', color: '#374151', lineHeight: 1.6 }}>
               {isAr ? 'إذا لم يكن المقاس أو المنتج المطلوب متوفراً حالياً، نرجو منكم الانتظار إلى حين توفره. وفي حال عدم توفره نهائياً، سنقترح عليكم حلاً مناسباً.'
                    : 'Si la taille ou le produit souhaité n\'est pas disponible actuellement, veuillez patienter jusqu\'à son réassort. S\'il n\'est plus disponible définitivement, nous vous proposerons une solution appropriée.'}
@@ -107,7 +127,11 @@ export default function LivraisonClient() {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-            <div style={{ fontSize: '2rem', flexShrink: 0 }}>✓</div>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
             <p style={{ margin: 0, fontSize: '1rem', color: '#374151', lineHeight: 1.6 }}>
               {isAr ? 'أما إذا كان الخطأ من طرفنا (مقاس أو منتج مختلف عن المطلوب)، فإننا نتحمل كامل مسؤولية التغيير، ويتم استبدال المنتج دون أي مصاريف إضافية على الزبون.'
                    : 'Cependant, si l\'erreur vient de notre part (taille ou produit différent de celui commandé), nous prenons l\'entière responsabilité de l\'échange, et le produit sera remplacé sans aucun frais supplémentaire pour le client.'}
@@ -127,21 +151,38 @@ export default function LivraisonClient() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-            <div style={{ fontSize: '3rem', flexShrink: 0 }}>🏠</div>
+            <div style={{ width: '48px', height: '48px', borderRadius: '10px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </div>
             <div style={{ flex: 1 }}>
               <h3 style={{ margin: '0 0 12px 0', fontSize: '1.3rem', fontWeight: 700 }}>
                 {isAr ? 'التوصيل إلى المنزل' : 'Livraison à domicile'}
               </h3>
               <ul style={{ margin: 0, paddingLeft: isAr ? 0 : '20px', paddingRight: isAr ? '20px' : 0, color: '#4b5563', lineHeight: 1.8 }}>
                 <li>{isAr ? 'الأسعار تختلف حسب الولاية' : 'Les prix varient selon la wilaya'}</li>
-                <li>{isAr ? 'الجزائر العاصمة : 500 دج' : 'Alger : 500 DA'}</li>
+                <li>{isAr ? 'الجزائر العاصمة : 400 دج' : 'Alger : 400 DA'}</li>
                 <li>{isAr ? 'باقي الولايات : حسب الجدول' : 'Autres wilayas : selon le tableau'}</li>
               </ul>
             </div>
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-            <div style={{ fontSize: '3rem', flexShrink: 0 }}>🏢</div>
+            <div style={{ width: '48px', height: '48px', borderRadius: '10px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                <line x1="9" y1="22" x2="9" y2="22.01" />
+                <line x1="15" y1="22" x2="15" y2="22.01" />
+                <line x1="8" y1="6" x2="10" y2="6" />
+                <line x1="14" y1="6" x2="16" y2="6" />
+                <line x1="8" y1="10" x2="10" y2="10" />
+                <line x1="14" y1="10" x2="16" y2="10" />
+                <line x1="8" y1="14" x2="10" y2="14" />
+                <line x1="14" y1="14" x2="16" y2="14" />
+              </svg>
+            </div>
             <div style={{ flex: 1 }}>
               <h3 style={{ margin: '0 0 12px 0', fontSize: '1.3rem', fontWeight: 700 }}>
                 {isAr ? 'التوصيل إلى مكتب Noest Express' : 'Livraison au bureau Noest Express'}
@@ -164,12 +205,12 @@ export default function LivraisonClient() {
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                 <th style={{ padding: '16px', textAlign: isAr ? 'right' : 'left', fontWeight: 700, width: '40%' }}>{isAr ? 'الولاية' : 'Wilaya'}</th>
-                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>🏢 {isAr ? 'المكتب' : 'Bureau'}</th>
-                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>🏠 {isAr ? 'المنزل' : 'Domicile'}</th>
+                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>{isAr ? 'المكتب' : 'Bureau'}</th>
+                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>{isAr ? 'المنزل' : 'Domicile'}</th>
               </tr>
             </thead>
             <tbody>
-              {wilayas1_29.map((w, i) => (
+              {wilayas1_29.map((w) => (
                 <tr key={w.code} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: w.highlight ? '#fef3c7' : 'transparent' }}>
                   <td style={{ padding: '12px 16px', fontWeight: w.highlight ? 700 : 500 }}>{w.code} {w.name}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', color: w.highlight ? '#d97706' : '#374151' }}>{w.desk}</td>
@@ -185,12 +226,12 @@ export default function LivraisonClient() {
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                 <th style={{ padding: '16px', textAlign: isAr ? 'right' : 'left', fontWeight: 700, width: '40%' }}>{isAr ? 'الولاية' : 'Wilaya'}</th>
-                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>🏢 {isAr ? 'المكتب' : 'Bureau'}</th>
-                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>🏠 {isAr ? 'المنزل' : 'Domicile'}</th>
+                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>{isAr ? 'المكتب' : 'Bureau'}</th>
+                <th style={{ padding: '16px', textAlign: 'center', fontWeight: 700, width: '30%' }}>{isAr ? 'المنزل' : 'Domicile'}</th>
               </tr>
             </thead>
             <tbody>
-              {wilayas30_58.map((w, i) => (
+              {wilayas30_58.map((w) => (
                 <tr key={w.code} style={{ borderBottom: '1px solid #e5e7eb' }}>
                   <td style={{ padding: '12px 16px', fontWeight: 500 }}>{w.code} {w.name}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', color: '#374151' }}>{w.desk}</td>

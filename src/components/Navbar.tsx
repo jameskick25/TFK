@@ -76,7 +76,11 @@ export default function Navbar() {
               className="cart-btn"
               style={{ background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: '4px', padding: '6px 12px', fontSize: '1.1rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <span>🛒</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
               <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.8rem' }}>{itemCount}</span>
             </button>
             <button
