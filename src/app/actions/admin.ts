@@ -365,6 +365,13 @@ export async function updateBulkStock(updates: Record<string, number>) {
     }
     
     revalidatePath('/admin/stock');
+    revalidatePath('/catalog');
+    revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
+    revalidatePath('/clothes/product/[slug]', 'page');
+    revalidatePath('/accessories/product/[slug]', 'page');
+    revalidatePath('/product/[slug]', 'page');
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };
@@ -502,29 +509,45 @@ export async function updateProductComplete(formData: FormData) {
       const submittedIds = new Set<string>();
 
       for (const variantGroup of variantsData) {
-        const color = variantGroup.color ? variantGroup.color.trim() : null;
+        const color = variantGroup.color && variantGroup.color.trim() ? variantGroup.color.trim() : null;
         for (const sizeObj of (variantGroup.sizes || [])) {
-          if (!sizeObj.size?.trim()) continue;
+          const size = sizeObj.size?.trim();
+          if (!size) continue;
+          const stock = Math.max(0, parseInt(String(sizeObj.stock)) || 0);
 
-          const { data: upsertedVar } = await supabase
-            .from('product_variants')
-            .upsert(
-              {
-                ...(sizeObj.id && existingIds.has(sizeObj.id) ? { id: sizeObj.id } : {}),
+          if (sizeObj.id && existingIds.has(sizeObj.id)) {
+            // Update existing variant directly by primary key id
+            const { error: updateVarError } = await supabase
+              .from('product_variants')
+              .update({
+                color,
+                size,
+                stock
+              })
+              .eq('id', sizeObj.id);
+
+            if (updateVarError) {
+              console.error('Erreur update product_variant:', updateVarError);
+            }
+            submittedIds.add(sizeObj.id);
+          } else {
+            // Insert new variant
+            const { data: newVar, error: insertVarError } = await supabase
+              .from('product_variants')
+              .insert({
                 product_id: id,
                 color,
-                size: sizeObj.size.trim(),
-                stock: Number(sizeObj.stock) || 0
-              },
-              { onConflict: 'product_id, color, size' }
-            )
-            .select('id')
-            .maybeSingle();
+                size,
+                stock
+              })
+              .select('id')
+              .single();
 
-          if (upsertedVar?.id) {
-            submittedIds.add(upsertedVar.id);
-          } else if (sizeObj.id) {
-            submittedIds.add(sizeObj.id);
+            if (insertVarError) {
+              console.error('Erreur insert product_variant:', insertVarError);
+            } else if (newVar?.id) {
+              submittedIds.add(newVar.id);
+            }
           }
         }
       }
@@ -532,10 +555,13 @@ export async function updateProductComplete(formData: FormData) {
       // Delete variants that were removed
       const toDelete = Array.from(existingIds).filter(varId => !submittedIds.has(varId));
       if (toDelete.length > 0) {
-        await supabase
+        const { error: delError } = await supabase
           .from('product_variants')
           .delete()
           .in('id', toDelete);
+        if (delError) {
+          console.warn('Variantes non supprimées (potentiellement liées à des commandes):', delError.message);
+        }
       }
     }
 
@@ -593,6 +619,9 @@ export async function updateProductComplete(formData: FormData) {
     revalidatePath('/');
     revalidatePath('/clothes');
     revalidatePath('/accessories');
+    revalidatePath('/clothes/product/[slug]', 'page');
+    revalidatePath('/accessories/product/[slug]', 'page');
+    revalidatePath('/product/[slug]', 'page');
 
     return { success: true };
   } catch (err: any) {

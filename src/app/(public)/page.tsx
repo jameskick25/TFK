@@ -9,6 +9,48 @@ export const metadata = {
   description: 'Découvrez notre collection de vêtements modernes et élégants. Des coupes confortables et des matières sélectionnées avec soin.',
 };
 
+const getCategoryMenImage = (name: string = '', slug: string = '', index: number = 0) => {
+  const text = `${name} ${slug}`.toLowerCase();
+
+  // Baskets / Chaussures / Sneakers
+  if (text.includes('basket') || text.includes('chaussure') || text.includes('sneaker') || text.includes('shoe')) {
+    return 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop';
+  }
+  // Sweats / Hoodies / Pulls
+  if (text.includes('sweat') || text.includes('hoodie') || text.includes('pull')) {
+    return 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=800&auto=format&fit=crop';
+  }
+  // T-shirts / Polos / Hauts
+  if (text.includes('t-shirt') || text.includes('tshirt') || text.includes('polo') || text.includes('haut')) {
+    return 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=800&auto=format&fit=crop';
+  }
+  // Pantalons / Jeans / Jogging / Bas
+  if (text.includes('pantalon') || text.includes('jean') || text.includes('jogging') || text.includes('bas')) {
+    return 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=800&auto=format&fit=crop';
+  }
+  // Vestes / Manteaux / Ensembles
+  if (text.includes('veste') || text.includes('manteau') || text.includes('blouson') || text.includes('ensemble') || text.includes('jacket')) {
+    return 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop';
+  }
+  // Accessoires / Montres / Casquettes / Sacs
+  if (text.includes('accessoire') || text.includes('montre') || text.includes('casquette') || text.includes('sac') || text.includes('lunette')) {
+    return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop';
+  }
+  // Costumes / Chemises
+  if (text.includes('costume') || text.includes('chemise')) {
+    return 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop';
+  }
+
+  // Fallbacks de mode masculine
+  const menFashionFallbacks = [
+    'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=800&auto=format&fit=crop',
+  ];
+  return menFashionFallbacks[index % menFashionFallbacks.length];
+};
+
 export default async function Home() {
   const supabase = await createClient();
 
@@ -96,6 +138,7 @@ export default async function Home() {
         </div>
       </section>
 
+
       {/* Editorial Category Grid */}
       <section className="section" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid var(--border)' }}>
         <div className="container">
@@ -104,12 +147,7 @@ export default async function Home() {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
             {categories.slice(0, 3).map((cat, i) => {
-              const fallbackImages = [
-                'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=600&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
-              ];
-              const bgImg = cat.image_url || fallbackImages[i % fallbackImages.length];
+              const bgImg = cat.image_url || getCategoryMenImage(cat.name, cat.slug, i);
               
               return (
                 <Link 
@@ -155,9 +193,9 @@ export default async function Home() {
               const productHref = `/${section === 'accessories' ? 'accessories' : 'clothes'}/product/${product.slug}`;
               return (
                 <div key={product.id} className="product-card" style={{ backgroundColor: '#fff' }}>
-                  <div className="product-card-img">
-                    <Link href={productHref} style={{ display: 'block', width: '100%', height: '100%' }}>
-                      <img src={mainImage} alt={product.name} />
+                  <div className="product-card-img" style={{ position: 'relative', aspectRatio: '4/5', overflow: 'hidden' }}>
+                    <Link href={productHref} style={{ display: 'block', width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+                      <img src={mainImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
                     </Link>
                   </div>
                   <div className="product-card-body" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>

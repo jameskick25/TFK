@@ -26,9 +26,9 @@ export default function ClothesProductClient({ product, variants }: { product: a
   // Multi-item selections
   const [quantity, setQuantity] = useState(1);
   const [selections, setSelections] = useState(() => {
-    const hasColor = colorParam && variants.some(v => v.color === colorParam);
+    const hasColor = colorParam && variants.some(v => (v.color || '').trim().toLowerCase() === colorParam.trim().toLowerCase());
     const initialColor = hasColor ? colorParam : (variants[0]?.color || '');
-    const matchingVariant = variants.find(v => v.color === initialColor);
+    const matchingVariant = variants.find(v => (v.color || '').trim().toLowerCase() === (initialColor || '').trim().toLowerCase()) || variants[0];
     return [{ color: initialColor, size: matchingVariant?.size || variants[0]?.size || '' }];
   });
 
@@ -79,8 +79,10 @@ export default function ClothesProductClient({ product, variants }: { product: a
   };
 
   const getVariantForSelection = (color: string, size: string) => {
-    return variants.find(v => v.color === color && v.size === size) 
-      || variants.find(v => v.size === size) 
+    const cNorm = (color || '').trim().toLowerCase();
+    const sNorm = (size || '').trim().toLowerCase();
+    return variants.find(v => (v.color || '').trim().toLowerCase() === cNorm && (v.size || '').trim().toLowerCase() === sNorm) 
+      || variants.find(v => (v.size || '').trim().toLowerCase() === sNorm) 
       || variants[0];
   };
 
@@ -165,10 +167,10 @@ export default function ClothesProductClient({ product, variants }: { product: a
   const currency = language === 'ar' ? t('currency_ar') : t('currency');
 
   return (
-    <div className="container" style={{ paddingTop: '24px', paddingBottom: '48px' }}>
+    <div className="container" style={{ paddingTop: '8px', paddingBottom: '48px' }}>
       
       {/* Breadcrumbs */}
-      <div style={{ marginBottom: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+      <div style={{ marginBottom: '10px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
         <span style={{ cursor: 'pointer' }} onClick={() => router.push('/')}>TFK Store</span> &gt;{' '}
         <span style={{ cursor: 'pointer' }} onClick={() => router.push('/clothes')}>Mode Vêtements</span> &gt;{' '}
         <span style={{ fontWeight: 600, color: 'var(--text)' }}>{product.name}</span>
@@ -259,9 +261,17 @@ export default function ClothesProductClient({ product, variants }: { product: a
             
             {selections.map((sel, idx) => {
               const getClaimedStock = (color: string, size: string, excludeIdx: number) => {
+                const cNorm = (color || '').trim().toLowerCase();
+                const sNorm = (size || '').trim().toLowerCase();
                 return selections.reduce((total, currentSel, i) => {
-                  if (i !== excludeIdx && currentSel.color === color && currentSel.size === size) {
-                    return total + 1;
+                  if (i !== excludeIdx) {
+                    const selCNorm = (currentSel.color || '').trim().toLowerCase();
+                    const selSNorm = (currentSel.size || '').trim().toLowerCase();
+                    const matchColor = !cNorm || !selCNorm || cNorm === selCNorm;
+                    const matchSize = sNorm === selSNorm;
+                    if (matchColor && matchSize) {
+                      return total + 1;
+                    }
                   }
                   return total;
                 }, 0);
@@ -280,8 +290,9 @@ export default function ClothesProductClient({ product, variants }: { product: a
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 500 }}>{t('color')}</div>
                       <div className="option-selectors">
                         {uniqueColors.map(c => {
+                          const cNorm = (c || '').trim().toLowerCase();
                           const isOutOfStock = !variants.some(v => {
-                            if (v.color !== c) return false;
+                            if ((v.color || '').trim().toLowerCase() !== cNorm) return false;
                             const claimed = getClaimedStock(c, v.size, idx);
                             return (v.stock - claimed) > 0;
                           });
@@ -290,7 +301,7 @@ export default function ClothesProductClient({ product, variants }: { product: a
                             <button 
                               key={c}
                               type="button" 
-                              className={`color-btn ${sel.color === c ? 'active' : ''}`}
+                              className={`color-btn ${(sel.color || '').trim().toLowerCase() === cNorm ? 'active' : ''}`}
                               onClick={() => updateSelection(idx, 'color', c)}
                               disabled={isOutOfStock}
                             >
@@ -307,16 +318,21 @@ export default function ClothesProductClient({ product, variants }: { product: a
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 500 }}>{t('size')}</div>
                       <div className="option-selectors">
                         {uniqueSizes.map(s => {
-                          const variantMatch = variants.find(v => v.color === sel.color && v.size === s);
+                          const sNorm = (s || '').trim().toLowerCase();
+                          const cNorm = (sel.color || '').trim().toLowerCase();
+                          const variantMatch = variants.find(v => 
+                            (v.color || '').trim().toLowerCase() === cNorm && (v.size || '').trim().toLowerCase() === sNorm
+                          ) || variants.find(v => (v.size || '').trim().toLowerCase() === sNorm);
+
                           const claimed = getClaimedStock(sel.color, s, idx);
-                          const remainingForThisDropdown = variantMatch ? variantMatch.stock - claimed : 0;
+                          const remainingForThisDropdown = variantMatch ? (variantMatch.stock - claimed) : 0;
                           const isOutOfStock = remainingForThisDropdown <= 0;
                           
                           return (
                             <button 
                               key={s} 
                               type="button"
-                              className={`size-btn ${sel.size === s ? 'active' : ''}`}
+                              className={`size-btn ${(sel.size || '').trim().toLowerCase() === sNorm ? 'active' : ''}`}
                               onClick={() => updateSelection(idx, 'size', s)}
                               disabled={isOutOfStock}
                             >

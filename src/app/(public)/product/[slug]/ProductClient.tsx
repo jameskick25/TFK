@@ -26,11 +26,9 @@ export default function ProductClient({ product, variants }: { product: any, var
   // Multi-item selections
   const [quantity, setQuantity] = useState(1);
   const [selections, setSelections] = useState(() => {
-    const hasColor = colorParam && variants.some(v => v.color === colorParam);
+    const hasColor = colorParam && variants.some(v => (v.color || '').trim().toLowerCase() === colorParam.trim().toLowerCase());
     const initialColor = hasColor ? colorParam : (variants[0]?.color || '');
-    
-    // Find a size that matches the color
-    const matchingVariant = variants.find(v => v.color === initialColor);
+    const matchingVariant = variants.find(v => (v.color || '').trim().toLowerCase() === (initialColor || '').trim().toLowerCase()) || variants[0];
     return [{ color: initialColor, size: matchingVariant?.size || variants[0]?.size || '' }];
   });
 
@@ -82,8 +80,10 @@ export default function ProductClient({ product, variants }: { product: any, var
   };
 
   const getVariantForSelection = (color: string, size: string) => {
-    return variants.find(v => v.color === color && v.size === size) 
-      || variants.find(v => v.size === size) 
+    const cNorm = (color || '').trim().toLowerCase();
+    const sNorm = (size || '').trim().toLowerCase();
+    return variants.find(v => (v.color || '').trim().toLowerCase() === cNorm && (v.size || '').trim().toLowerCase() === sNorm) 
+      || variants.find(v => (v.size || '').trim().toLowerCase() === sNorm) 
       || variants[0];
   };
 
@@ -127,6 +127,9 @@ export default function ProductClient({ product, variants }: { product: any, var
     if (!allInStock) return;
     setIsSubmitting(true);
     setErrorMsg('');
+    formData.append('total_amount', finalTotal.toString());
+    formData.append('shipping_cost', deliveryCost.toString());
+    formData.append('delivery_type', deliveryType);
 
     const cartItems = selections.map(sel => {
       const variant = getVariantForSelection(sel.color, sel.size);
@@ -168,7 +171,7 @@ export default function ProductClient({ product, variants }: { product: any, var
   const currency = language === 'ar' ? t('currency_ar') : t('currency');
 
   return (
-    <div className="product-page" style={{ padding: '20px 16px' }}>
+    <div className="product-page" style={{ padding: '8px 16px 32px' }}>
       <div className="product-grid" style={{ gap: '20px' }}>
         
         {/* Gallery */}
@@ -232,16 +235,24 @@ export default function ProductClient({ product, variants }: { product: any, var
             
             {selections.map((sel, idx) => {
               const getClaimedStock = (color: string, size: string, excludeIdx: number) => {
+                const cNorm = (color || '').trim().toLowerCase();
+                const sNorm = (size || '').trim().toLowerCase();
                 return selections.reduce((total, currentSel, i) => {
-                  if (i !== excludeIdx && currentSel.color === color && currentSel.size === size) {
-                    return total + 1;
+                  if (i !== excludeIdx) {
+                    const selCNorm = (currentSel.color || '').trim().toLowerCase();
+                    const selSNorm = (currentSel.size || '').trim().toLowerCase();
+                    const matchColor = !cNorm || !selCNorm || cNorm === selCNorm;
+                    const matchSize = sNorm === selSNorm;
+                    if (matchColor && matchSize) {
+                      return total + 1;
+                    }
                   }
                   return total;
                 }, 0);
               };
 
               const currentVariant = getVariantForSelection(sel.color, sel.size);
-              const totalClaimed = getClaimedStock(sel.color, sel.size, -1); // -1 means count all
+              const totalClaimed = getClaimedStock(sel.color, sel.size, -1);
               const globalRemaining = currentVariant ? currentVariant.stock - totalClaimed : 0;
 
               return (
@@ -253,8 +264,9 @@ export default function ProductClient({ product, variants }: { product: any, var
                       <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '6px' }}>{t('color')}</div>
                       <div className="option-selectors">
                         {uniqueColors.map(c => {
+                          const cNorm = (c || '').trim().toLowerCase();
                           const isOutOfStock = !variants.some(v => {
-                            if (v.color !== c) return false;
+                            if ((v.color || '').trim().toLowerCase() !== cNorm) return false;
                             const claimed = getClaimedStock(c, v.size, idx);
                             return (v.stock - claimed) > 0;
                           });
@@ -263,7 +275,7 @@ export default function ProductClient({ product, variants }: { product: any, var
                             <button 
                               key={c}
                               type="button" 
-                              className={`color-btn ${sel.color === c ? 'active' : ''}`}
+                              className={`color-btn ${(sel.color || '').trim().toLowerCase() === cNorm ? 'active' : ''}`}
                               onClick={() => updateSelection(idx, 'color', c)}
                               disabled={isOutOfStock}
                             >
@@ -280,16 +292,21 @@ export default function ProductClient({ product, variants }: { product: any, var
                       <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>{t('size')}</div>
                       <div className="option-selectors">
                         {uniqueSizes.map(s => {
-                          const variantMatch = variants.find(v => v.color === sel.color && v.size === s);
+                          const sNorm = (s || '').trim().toLowerCase();
+                          const cNorm = (sel.color || '').trim().toLowerCase();
+                          const variantMatch = variants.find(v => 
+                            (v.color || '').trim().toLowerCase() === cNorm && (v.size || '').trim().toLowerCase() === sNorm
+                          ) || variants.find(v => (v.size || '').trim().toLowerCase() === sNorm);
+
                           const claimed = getClaimedStock(sel.color, s, idx);
-                          const remainingForThisDropdown = variantMatch ? variantMatch.stock - claimed : 0;
+                          const remainingForThisDropdown = variantMatch ? (variantMatch.stock - claimed) : 0;
                           const isOutOfStock = remainingForThisDropdown <= 0;
                           
                           return (
                             <button 
                               key={s} 
                               type="button"
-                              className={`size-btn ${sel.size === s ? 'active' : ''}`}
+                              className={`size-btn ${(sel.size || '').trim().toLowerCase() === sNorm ? 'active' : ''}`}
                               onClick={() => updateSelection(idx, 'size', s)}
                               disabled={isOutOfStock}
                             >

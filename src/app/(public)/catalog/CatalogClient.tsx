@@ -731,7 +731,7 @@ export default function CatalogClient({
 
               return (
                 <div className="product-card" key={product.id} style={{ borderRadius: '12px', overflow: 'hidden', backgroundColor: '#fff', border: '1px solid #f3f4f6', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                  <div className="product-card-img" style={{ position: 'relative', aspectRatio: '4/5' }}>
+                  <div className="product-card-img" style={{ position: 'relative', aspectRatio: '4/5', overflow: 'hidden' }}>
                     {discount > 0 && (
                       <span style={{ 
                         position: 'absolute', 
@@ -748,8 +748,8 @@ export default function CatalogClient({
                         -{discount}%
                       </span>
                     )}
-                    <Link href={productHref} style={{ display: 'block', width: '100%', height: '100%' }}>
-                      <img src={mainImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <Link href={productHref} style={{ display: 'block', width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+                      <img src={mainImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
                     </Link>
                   </div>
                   <div className="product-card-body" style={{ padding: '12px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

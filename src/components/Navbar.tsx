@@ -14,11 +14,8 @@ export default function Navbar() {
   const { language, setLanguage } = useLanguage();
   const t = useTranslation(language);
 
-  const isProductPage = pathname?.startsWith('/product/') || pathname?.includes('/product/');
-  const headerStyle = isProductPage ? { position: 'relative' as const } : {};
-
   return (
-    <header className="nav-shell" style={headerStyle}>
+    <header className="nav-shell">
       {/* Main Navbar */}
       <nav className="navbar" style={{ padding: '8px 0' }}>
         <div className="container navbar-container">
