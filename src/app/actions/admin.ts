@@ -506,33 +506,25 @@ export async function updateProductComplete(formData: FormData) {
         for (const sizeObj of (variantGroup.sizes || [])) {
           if (!sizeObj.size?.trim()) continue;
 
-          if (sizeObj.id && existingIds.has(sizeObj.id)) {
-            // Update existing variant
-            submittedIds.add(sizeObj.id);
-            await supabase
-              .from('product_variants')
-              .update({
-                color,
-                size: sizeObj.size.trim(),
-                stock: Number(sizeObj.stock) || 0
-              })
-              .eq('id', sizeObj.id);
-          } else {
-            // Insert new variant
-            const { data: newVar } = await supabase
-              .from('product_variants')
-              .insert({
+          const { data: upsertedVar } = await supabase
+            .from('product_variants')
+            .upsert(
+              {
+                ...(sizeObj.id && existingIds.has(sizeObj.id) ? { id: sizeObj.id } : {}),
                 product_id: id,
                 color,
                 size: sizeObj.size.trim(),
                 stock: Number(sizeObj.stock) || 0
-              })
-              .select('id')
-              .single();
+              },
+              { onConflict: 'product_id, color, size' }
+            )
+            .select('id')
+            .maybeSingle();
 
-            if (newVar?.id) {
-              submittedIds.add(newVar.id);
-            }
+          if (upsertedVar?.id) {
+            submittedIds.add(upsertedVar.id);
+          } else if (sizeObj.id) {
+            submittedIds.add(sizeObj.id);
           }
         }
       }
@@ -547,8 +539,10 @@ export async function updateProductComplete(formData: FormData) {
       }
     }
 
-    // 3. Upload any new photos
-    const newFiles = (formData.getAll('new_images') as File[]).filter(f => f && f.size > 0);
+    // 3. Upload any new photos safely
+    const newFiles = (formData.getAll('new_images') as any[]).filter(
+      f => f && typeof f === 'object' && typeof f.arrayBuffer === 'function' && f.size > 0
+    );
     const newImageColors = formData.getAll('new_image_colors') as string[];
 
     if (newFiles.length > 0) {

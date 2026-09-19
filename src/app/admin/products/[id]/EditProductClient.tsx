@@ -21,6 +21,45 @@ type EditColorGroup = {
   sizes: EditSize[];
 };
 
+const compressImage = async (file: File, maxWidth = 1200, quality = 0.8): Promise<File> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+        
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+};
+
 export default function EditProductClient({ 
   product, 
   categories 
@@ -206,11 +245,17 @@ export default function EditProductClient({
       }));
       formData.append('variantsData', JSON.stringify(variantsData));
 
-      // Append new images
-      newImages.forEach(item => {
-        formData.append('new_images', item.file);
+      // Compress and append new images
+      for (const item of newImages) {
+        let fileToSend = item.file;
+        try {
+          fileToSend = await compressImage(item.file);
+        } catch (e) {
+          console.warn('Compression échouée, envoi fichier original:', e);
+        }
+        formData.append('new_images', fileToSend);
         formData.append('new_image_colors', item.color);
-      });
+      }
       
       const result = await updateProductComplete(formData);
       
