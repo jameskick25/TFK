@@ -8,22 +8,33 @@ export default function EditProductClient({ product, categories }: { product: an
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFeedback(null);
     
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    formData.append('productId', product.id);
-    
-    const result = await updateProductInfo(formData);
-    
-    if (result?.success) {
-      router.push('/admin/products');
-      router.refresh();
-    } else {
-      alert('Erreur lors de la modification : ' + (result?.error || ''));
+    try {
+      const form = e.currentTarget;
+      const formData = new FormData(form);
+      formData.append('productId', product.id);
+      
+      const result = await updateProductInfo(formData);
+      
+      if (result && result.success) {
+        setFeedback({ type: 'success', message: 'Modifications enregistrées avec succès !' });
+        setTimeout(() => {
+          router.push('/admin/products');
+          router.refresh();
+        }, 800);
+      } else {
+        setFeedback({ type: 'error', message: result?.error || 'Erreur lors de la modification.' });
+      }
+    } catch (err: any) {
+      console.error('Erreur handleSubmit:', err);
+      setFeedback({ type: 'error', message: err.message || 'Erreur inattendue.' });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -34,12 +45,19 @@ export default function EditProductClient({ product, categories }: { product: an
     }
     
     setIsDeleting(true);
-    const result = await deleteProduct(product.id);
-    
-    if (result?.success) {
-      window.location.href = '/admin/products';
-    } else {
-      alert('Erreur lors de la suppression : ' + (result?.error || ''));
+    setFeedback(null);
+
+    try {
+      const result = await deleteProduct(product.id);
+      
+      if (result?.success) {
+        window.location.href = '/admin/products';
+      } else {
+        setFeedback({ type: 'error', message: result?.error || 'Erreur lors de la suppression.' });
+        setIsDeleting(false);
+      }
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err.message || 'Erreur inattendue.' });
       setIsDeleting(false);
     }
   };
@@ -119,6 +137,32 @@ export default function EditProductClient({ product, categories }: { product: an
           {isDeleting ? 'Suppression...' : 'Supprimer le produit'}
         </button>
       </div>
+
+      {feedback && (
+        <div
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            fontSize: '0.9rem',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`
+          }}
+        >
+          <span>{feedback.message}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            Fermer
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -225,9 +269,14 @@ export default function EditProductClient({ product, categories }: { product: an
               }}
             >
               <option value="">Sélectionnez une catégorie</option>
-              {categories?.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
+              {categories?.map(cat => {
+                const isSub = cat.slug?.startsWith('sub--');
+                return (
+                  <option key={cat.id} value={cat.id}>
+                    {isSub ? `  ↳ ${cat.name}` : cat.name}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -255,31 +304,6 @@ export default function EditProductClient({ product, categories }: { product: an
           </div>
         </div>
 
-        <div
-          style={{
-            padding: '16px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '10px',
-            border: '1px solid #e2e8f0'
-          }}
-        >
-          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              name="show_colors_separately" 
-              value="true" 
-              defaultChecked={product.show_colors_separately}
-              style={{ width: '18px', height: '18px', accentColor: '#09090b' }}
-            />
-            <span style={{ fontWeight: 600, color: '#09090b', fontSize: '0.92rem' }}>
-              Afficher chaque couleur comme un produit distinct dans le catalogue
-            </span>
-          </label>
-          <p style={{ margin: '6px 0 0 28px', fontSize: '0.82rem', color: '#64748b' }}>
-            Si coché, les variantes couleurs apparaîtront individuellement sur la boutique et les filtres.
-          </p>
-        </div>
-
         <div style={{ padding: '14px 16px', backgroundColor: '#fafafa', borderRadius: '8px', border: '1px solid #f4f4f5' }}>
           <p style={{ margin: 0, color: '#71717a', fontSize: '0.85rem' }}>
             <strong>Note :</strong> Pour modifier le stock par taille et couleur, rendez-vous dans l&apos;onglet <strong>Gestion de Stock</strong> du menu.
@@ -301,10 +325,30 @@ export default function EditProductClient({ product, categories }: { product: an
               width: '100%',
               fontSize: '1rem',
               letterSpacing: '0.02em',
-              minHeight: '48px'
+              minHeight: '48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
             }}
           >
-            {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
+            {isSubmitting ? (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <line x1="12" y1="2" x2="12" y2="6" />
+                  <line x1="12" y1="18" x2="12" y2="22" />
+                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+                  <line x1="2" y1="12" x2="6" y2="12" />
+                  <line x1="18" y1="12" x2="22" y2="12" />
+                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
+                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+                </svg>
+                Enregistrement en cours...
+              </>
+            ) : (
+              'Enregistrer les modifications'
+            )}
           </button>
         </div>
       </form>

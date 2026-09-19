@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { createCategory, updateCategory, deleteCategory } from '@/app/actions/admin';
-import { getSectionForCategory } from '@/utils/sections';
+import { useRouter } from 'next/navigation';
 
 interface Category {
   id: string;
@@ -12,6 +12,35 @@ interface Category {
   productCount?: number;
 }
 
+interface ParsedCategory extends Category {
+  parentId: string | null;
+  cleanSlug: string;
+  isSub: boolean;
+}
+
+function parseCategory(cat: Category): ParsedCategory {
+  if (cat.slug?.startsWith('sub--')) {
+    const withoutPrefix = cat.slug.slice(5);
+    const splitIndex = withoutPrefix.indexOf('--');
+    if (splitIndex !== -1) {
+      const parentId = withoutPrefix.slice(0, splitIndex);
+      const cleanSlug = withoutPrefix.slice(splitIndex + 2);
+      return {
+        ...cat,
+        parentId,
+        cleanSlug,
+        isSub: true
+      };
+    }
+  }
+  return {
+    ...cat,
+    parentId: null,
+    cleanSlug: cat.slug,
+    isSub: false
+  };
+}
+
 export default function CategoriesClient({
   initialCategories,
   productCounts
@@ -19,25 +48,68 @@ export default function CategoriesClient({
   initialCategories: Category[];
   productCounts: Record<string, number>;
 }) {
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>(initialCategories);
+  
+  // Create form state
   const [nameInput, setNameInput] = useState('');
   const [slugInput, setSlugInput] = useState('');
+  const [parentInput, setParentInput] = useState('none');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Edit state
-  const [editingId, setEditingId] = useState<string | null>(null);
+  // Edit modal state
+  const [editingCategory, setEditingCategory] = useState<ParsedCategory | null>(null);
   const [editName, setEditName] = useState('');
   const [editSlug, setEditSlug] = useState('');
+  const [editParentId, setEditParentId] = useState('none');
   const [editLoading, setEditLoading] = useState(false);
 
   // Delete state
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Parse all categories
+  const parsedCategories = useMemo(() => {
+    return categories.map(c => parseCategory(c));
+  }, [categories]);
+
+  // Main / Parent categories
+  const parentCategories = useMemo(() => {
+    return parsedCategories.filter(c => !c.isSub);
+  }, [parsedCategories]);
+
+  // Hierarchical ordered list (Parent followed by its subcategories)
+  const orderedList = useMemo(() => {
+    const list: { category: ParsedCategory; isSub: boolean; parentName?: string }[] = [];
+    const parents = parsedCategories.filter(c => !c.isSub);
+    const subs = parsedCategories.filter(c => c.isSub);
+
+    parents.forEach(parent => {
+      list.push({ category: parent, isSub: false });
+      // Find subs of this parent
+      const children = subs.filter(s => s.parentId === parent.id || s.parentId === parent.slug);
+      children.forEach(child => {
+        list.push({ category: child, isSub: true, parentName: parent.name });
+      });
+    });
+
+    // Add any orphan subcategories whose parent might have been deleted
+    subs.forEach(sub => {
+      const alreadyAdded = list.some(item => item.category.id === sub.id);
+      if (!alreadyAdded) {
+        list.push({ category: sub, isSub: true, parentName: 'Inconnu' });
+      }
+    });
+
+    return list;
+  }, [parsedCategories]);
+
   const handleNameChange = (val: string) => {
     setNameInput(val);
     const generated = val
       .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
     setSlugInput(generated);
@@ -53,6 +125,9 @@ export default function CategoriesClient({
     const formData = new FormData();
     formData.append('name', nameInput.trim());
     formData.append('slug', slugInput.trim());
+    if (parentInput !== 'none') {
+      formData.append('parent_id', parentInput);
+    }
 
     try {
       const res = await createCategory(formData);
@@ -60,53 +135,64 @@ export default function CategoriesClient({
         setCategories(prev => [...prev, { ...res.category, productCount: 0 }]);
         setNameInput('');
         setSlugInput('');
+        setParentInput('none');
         setFeedback({ type: 'success', message: `Catégorie "${res.category.name}" ajoutée avec succès.` });
+        router.refresh();
       } else {
         setFeedback({ type: 'error', message: res?.error || 'Erreur lors de la création de la catégorie.' });
       }
     } catch (err: any) {
+      console.error('Erreur handleCreate:', err);
       setFeedback({ type: 'error', message: err.message || 'Erreur inattendue.' });
     } finally {
       setLoading(false);
     }
   };
 
-  const startEdit = (cat: Category) => {
-    setEditingId(cat.id);
+  const startEdit = (cat: ParsedCategory) => {
+    setEditingCategory(cat);
     setEditName(cat.name);
-    setEditSlug(cat.slug);
+    setEditSlug(cat.cleanSlug);
+    setEditParentId(cat.parentId || 'none');
     setFeedback(null);
   };
 
   const cancelEdit = () => {
-    setEditingId(null);
+    setEditingCategory(null);
     setEditName('');
     setEditSlug('');
+    setEditParentId('none');
   };
 
-  const handleUpdate = async (id: string) => {
-    if (!editName.trim()) return;
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory || !editName.trim()) return;
 
     setEditLoading(true);
     setFeedback(null);
 
     const formData = new FormData();
-    formData.append('id', id);
+    formData.append('id', editingCategory.id);
     formData.append('name', editName.trim());
     formData.append('slug', editSlug.trim());
+    if (editParentId !== 'none') {
+      formData.append('parent_id', editParentId);
+    }
 
     try {
       const res = await updateCategory(formData);
       if (res && res.success && res.category) {
         setCategories(prev =>
-          prev.map(c => (c.id === id ? { ...c, name: res.category.name, slug: res.category.slug } : c))
+          prev.map(c => (c.id === editingCategory.id ? { ...c, name: res.category.name, slug: res.category.slug } : c))
         );
-        setEditingId(null);
-        setFeedback({ type: 'success', message: `Catégorie "${res.category.name}" mise à jour.` });
+        setEditingCategory(null);
+        setFeedback({ type: 'success', message: `Catégorie "${res.category.name}" mise à jour avec succès.` });
+        router.refresh();
       } else {
         setFeedback({ type: 'error', message: res?.error || 'Erreur lors de la modification.' });
       }
     } catch (err: any) {
+      console.error('Erreur handleUpdate:', err);
       setFeedback({ type: 'error', message: err.message || 'Erreur inattendue.' });
     } finally {
       setEditLoading(false);
@@ -116,12 +202,10 @@ export default function CategoriesClient({
   const handleDelete = async (cat: Category) => {
     const pCount = productCounts[cat.id] || 0;
     const confirmMessage = pCount > 0
-      ? `Attention : ${pCount} produit(s) sont rattachés à "${cat.name}". Si vous la supprimez, ils ne seront plus catégorisés. Voulez-vous vraiment continuer ?`
-      : `Voulez-vous vraiment supprimer la catégorie "${cat.name}" ?`;
+      ? `Attention : ${pCount} produit(s) sont rattachés à "${cat.name}". Si vous la supprimez, ils ne seront plus catégorisés. Continuer ?`
+      : `Voulez-vous vraiment supprimer "${cat.name}" ?`;
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+    if (!window.confirm(confirmMessage)) return;
 
     setDeletingId(cat.id);
     setFeedback(null);
@@ -131,10 +215,12 @@ export default function CategoriesClient({
       if (res && res.success) {
         setCategories(prev => prev.filter(c => c.id !== cat.id));
         setFeedback({ type: 'success', message: `Catégorie "${cat.name}" supprimée.` });
+        router.refresh();
       } else {
         setFeedback({ type: 'error', message: res?.error || 'Erreur lors de la suppression.' });
       }
     } catch (err: any) {
+      console.error('Erreur handleDelete:', err);
       setFeedback({ type: 'error', message: err.message || 'Erreur inattendue.' });
     } finally {
       setDeletingId(null);
@@ -156,7 +242,7 @@ export default function CategoriesClient({
             marginBottom: '4px'
           }}
         >
-          Taxonomie Catalogue
+          Structure du Catalogue
         </span>
         <h1
           style={{
@@ -168,10 +254,10 @@ export default function CategoriesClient({
             letterSpacing: '-0.02em'
           }}
         >
-          Gestion des Catégories
+          Gestion des Catégories & Sous-Catégories
         </h1>
         <p style={{ color: '#71717a', fontSize: '0.92rem', marginTop: '6px' }}>
-          Créez, modifiez ou supprimez les catégories pour organiser votre catalogue de produits.
+          Organisez votre catalogue avec des catégories principales et des sous-catégories associées.
         </p>
       </div>
 
@@ -201,32 +287,32 @@ export default function CategoriesClient({
         </div>
       )}
 
-      {/* Formulaire d'ajout responsive */}
+      {/* Formulaire d'ajout responsive avec sous-catégorie */}
       <div
         style={{
           backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          padding: '20px',
+          borderRadius: '14px',
+          padding: '22px',
           border: '1px solid #e4e4e7',
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           marginBottom: '28px'
         }}
       >
         <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#09090b', marginBottom: '16px', marginTop: 0 }}>
-          Ajouter une nouvelle catégorie
+          Ajouter une catégorie ou sous-catégorie
         </h2>
         <form onSubmit={handleCreate}>
           <div className="admin-form-row" style={{ display: 'flex', gap: '14px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '220px' }}>
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1.5, minWidth: '200px' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
-                Nom de la catégorie *
+                Nom *
               </label>
               <input
                 type="text"
                 required
                 value={nameInput}
                 onChange={e => handleNameChange(e.target.value)}
-                placeholder="Ex: Sweats, Pantalons..."
+                placeholder="Ex: T-Shirts, Baskets, Casquettes..."
                 style={{
                   padding: '10px 14px',
                   borderRadius: '8px',
@@ -238,28 +324,55 @@ export default function CategoriesClient({
               />
             </div>
 
-            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '200px' }}>
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1.5, minWidth: '200px' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
-                Slug URL (identifiant web)
+                Type / Catégorie Parente
+              </label>
+              <select
+                value={parentInput}
+                onChange={e => setParentInput(e.target.value)}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #d4d4d8',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  backgroundColor: '#ffffff',
+                  height: '44px'
+                }}
+              >
+                <option value="none">-- Aucune (Catégorie Principale) --</option>
+                {parentCategories.map(p => (
+                  <option key={p.id} value={p.id}>
+                    Sous-catégorie de : {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '160px' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
+                Slug URL
               </label>
               <input
                 type="text"
                 required
                 value={slugInput}
                 onChange={e => setSlugInput(e.target.value)}
-                placeholder="ex: sweats"
+                placeholder="ex: baskets"
                 style={{
                   padding: '10px 14px',
                   borderRadius: '8px',
                   border: '1px solid #d4d4d8',
-                  fontSize: '1rem',
+                  fontSize: '0.95rem',
                   backgroundColor: '#f4f4f5',
-                  color: '#52525b'
+                  color: '#52525b',
+                  height: '44px'
                 }}
               />
             </div>
 
-            <div className="admin-form-col" style={{ minWidth: '140px' }}>
+            <div className="admin-form-col" style={{ minWidth: '130px' }}>
               <button
                 type="submit"
                 disabled={loading || !nameInput.trim()}
@@ -272,7 +385,7 @@ export default function CategoriesClient({
                   cursor: loading || !nameInput.trim() ? 'not-allowed' : 'pointer',
                   fontWeight: 600,
                   fontSize: '0.9rem',
-                  height: '42px',
+                  height: '44px',
                   width: '100%',
                   opacity: loading || !nameInput.trim() ? 0.6 : 1,
                   display: 'flex',
@@ -292,175 +405,194 @@ export default function CategoriesClient({
         </form>
       </div>
 
+      {/* Modal d'édition */}
+      {editingCategory && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px'
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '14px',
+              padding: '24px',
+              maxWidth: '480px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+            }}
+          >
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.15rem', color: '#09090b', fontWeight: 800 }}>
+              Modifier la catégorie : {editingCategory.name}
+            </h3>
+
+            <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+                  Nom de la catégorie *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4d4d8', fontSize: '1rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+                  Catégorie Parente
+                </label>
+                <select
+                  value={editParentId}
+                  onChange={e => setEditParentId(e.target.value)}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4d4d8', fontSize: '0.95rem', backgroundColor: '#ffffff', height: '44px' }}
+                >
+                  <option value="none">-- Aucune (Catégorie Principale) --</option>
+                  {parentCategories
+                    .filter(p => p.id !== editingCategory.id)
+                    .map(p => (
+                      <option key={p.id} value={p.id}>
+                        Sous-catégorie de : {p.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+                  Slug URL
+                </label>
+                <input
+                  type="text"
+                  value={editSlug}
+                  onChange={e => setEditSlug(e.target.value)}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4d4d8', fontSize: '0.9rem', backgroundColor: '#f4f4f5', color: '#52525b' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  style={{ padding: '9px 16px', borderRadius: '8px', border: '1px solid #d4d4d8', backgroundColor: '#f4f4f5', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={editLoading}
+                  style={{ padding: '9px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#09090b', color: '#ffffff', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem' }}
+                >
+                  {editLoading ? 'Enregistrement...' : 'Sauvegarder'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── MOBILE CARDS VIEW (< 768px) ── */}
       <div className="admin-mobile-view" style={{ display: 'none', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#09090b' }}>
-            Catégories existantes ({categories.length})
+            Structure du catalogue ({orderedList.length})
           </span>
         </div>
 
-        {categories.length === 0 ? (
+        {orderedList.length === 0 ? (
           <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '24px', textAlign: 'center', color: '#71717a', border: '1px solid #e4e4e7' }}>
             Aucune catégorie enregistrée.
           </div>
         ) : (
-          categories.map(cat => {
-            const isEditing = editingId === cat.id;
-            const isDeleting = deletingId === cat.id;
-            const section = getSectionForCategory(cat.slug);
+          orderedList.map(({ category: cat, isSub, parentName }) => {
             const pCount = productCounts[cat.id] || 0;
+            const isDeleting = deletingId === cat.id;
 
             return (
               <div
                 key={cat.id}
                 style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: isSub ? '#fafafa' : '#ffffff',
                   borderRadius: '12px',
-                  border: '1px solid #e4e4e7',
-                  padding: '16px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                  border: isSub ? '1px dashed #d4d4d8' : '1px solid #e4e4e7',
+                  padding: '14px 16px',
+                  marginLeft: isSub ? '16px' : '0px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                 }}
               >
-                {isEditing ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#3f3f46', display: 'block', marginBottom: '4px' }}>
-                        Nom de la catégorie
-                      </label>
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          borderRadius: '6px',
-                          border: '1px solid #3b82f6',
-                          fontSize: '0.95rem'
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#3f3f46', display: 'block', marginBottom: '4px' }}>
-                        Slug URL
-                      </label>
-                      <input
-                        type="text"
-                        value={editSlug}
-                        onChange={e => setEditSlug(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          borderRadius: '6px',
-                          border: '1px solid #d4d4d8',
-                          fontSize: '0.9rem',
-                          backgroundColor: '#f4f4f5'
-                        }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
-                      <button
-                        onClick={() => handleUpdate(cat.id)}
-                        disabled={editLoading || !editName.trim()}
-                        style={{
-                          backgroundColor: '#09090b',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '8px 14px',
-                          fontSize: '0.85rem',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {editLoading ? '...' : 'Enregistrer'}
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        style={{
-                          backgroundColor: '#f4f4f5',
-                          color: '#3f3f46',
-                          border: '1px solid #e4e4e7',
-                          borderRadius: '6px',
-                          padding: '8px 14px',
-                          fontSize: '0.85rem',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Annuler
-                      </button>
-                    </div>
-                  </div>
-                ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#09090b' }}>
-                          {cat.name}
-                        </h3>
-                        <code style={{ fontSize: '0.78rem', color: '#71717a', backgroundColor: '#f4f4f5', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
-                          /{cat.slug}
-                        </code>
-                      </div>
-
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          padding: '3px 10px',
-                          borderRadius: '9999px',
-                          backgroundColor: section === 'accessories' ? '#ecfdf5' : '#eff6ff',
-                          color: section === 'accessories' ? '#065f46' : '#1e40af',
-                          fontWeight: 600
-                        }}
-                      >
-                        {section === 'accessories' ? 'Accessoires' : 'Vêtements'}
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #f4f4f5' }}>
-                      <span style={{ fontSize: '0.82rem', color: '#71717a', fontWeight: 500 }}>
-                        <strong>{pCount}</strong> produit(s) rattaché(s)
-                      </span>
-
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          onClick={() => startEdit(cat)}
-                          style={{
-                            background: '#ffffff',
-                            border: '1px solid #d4d4d8',
-                            color: '#09090b',
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => handleDelete(cat)}
-                          disabled={isDeleting}
-                          style={{
-                            background: '#ffffff',
-                            border: '1px solid #fecaca',
-                            color: '#dc2626',
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            cursor: isDeleting ? 'not-allowed' : 'pointer'
-                          }}
-                        >
-                          {isDeleting ? '...' : 'Supprimer'}
-                        </button>
-                      </div>
-                    </div>
+                    <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: isSub ? 600 : 800, color: '#09090b' }}>
+                      {isSub ? `↳ ${cat.name}` : cat.name}
+                    </h3>
+                    <code style={{ fontSize: '0.75rem', color: '#71717a', backgroundColor: '#f4f4f5', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                      /{cat.cleanSlug}
+                    </code>
                   </div>
-                )}
+
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      backgroundColor: isSub ? '#e0f2fe' : '#f4f4f5',
+                      color: isSub ? '#0369a1' : '#3f3f46',
+                      fontWeight: 600
+                    }}
+                  >
+                    {isSub ? `Sous-catégorie (${parentName})` : 'Catégorie Principale'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #f4f4f5' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#71717a', fontWeight: 500 }}>
+                    <strong>{pCount}</strong> produit(s)
+                  </span>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => startEdit(cat)}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #d4d4d8',
+                        color: '#09090b',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => handleDelete(cat)}
+                      disabled={isDeleting}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #fecaca',
+                        color: '#dc2626',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: isDeleting ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {isDeleting ? '...' : 'Supprimer'}
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           })
@@ -472,7 +604,7 @@ export default function CategoriesClient({
         className="admin-desktop-view"
         style={{
           backgroundColor: '#ffffff',
-          borderRadius: '12px',
+          borderRadius: '14px',
           border: '1px solid #e4e4e7',
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           overflow: 'hidden'
@@ -480,7 +612,7 @@ export default function CategoriesClient({
       >
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #f4f4f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#09090b' }}>
-            Catégories existantes ({categories.length})
+            Structure du catalogue ({orderedList.length})
           </h3>
         </div>
 
@@ -488,67 +620,30 @@ export default function CategoriesClient({
           <thead>
             <tr style={{ backgroundColor: '#fafafa', borderBottom: '1px solid #e4e4e7' }}>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nom</th>
+              <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</th>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Slug URL</th>
-              <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Univers</th>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Produits</th>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {categories.length === 0 ? (
+            {orderedList.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ padding: '32px 24px', textAlign: 'center', color: '#71717a' }}>
                   Aucune catégorie enregistrée.
                 </td>
               </tr>
             ) : (
-              categories.map(cat => {
-                const isEditing = editingId === cat.id;
-                const isDeleting = deletingId === cat.id;
-                const section = getSectionForCategory(cat.slug);
+              orderedList.map(({ category: cat, isSub, parentName }) => {
                 const pCount = productCounts[cat.id] || 0;
+                const isDeleting = deletingId === cat.id;
 
                 return (
-                  <tr key={cat.id} style={{ borderBottom: '1px solid #f4f4f5' }}>
-                    <td style={{ padding: '14px 20px' }}>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={e => setEditName(e.target.value)}
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: '4px',
-                            border: '1px solid #3b82f6',
-                            fontSize: '0.9rem',
-                            width: '100%'
-                          }}
-                        />
-                      ) : (
-                        <span style={{ fontWeight: 600, color: '#09090b', fontSize: '0.92rem' }}>{cat.name}</span>
-                      )}
-                    </td>
-
-                    <td style={{ padding: '14px 20px' }}>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editSlug}
-                          onChange={e => setEditSlug(e.target.value)}
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: '4px',
-                            border: '1px solid #3b82f6',
-                            fontSize: '0.85rem',
-                            color: '#52525b',
-                            width: '100%'
-                          }}
-                        />
-                      ) : (
-                        <code style={{ fontSize: '0.82rem', color: '#71717a', backgroundColor: '#f4f4f5', padding: '2px 8px', borderRadius: '4px' }}>
-                          {cat.slug}
-                        </code>
-                      )}
+                  <tr key={cat.id} style={{ borderBottom: '1px solid #f4f4f5', backgroundColor: isSub ? '#fafafa' : '#ffffff' }}>
+                    <td style={{ padding: '14px 20px', paddingLeft: isSub ? '40px' : '20px' }}>
+                      <span style={{ fontWeight: isSub ? 500 : 700, color: '#09090b', fontSize: '0.92rem' }}>
+                        {isSub ? `↳ ${cat.name}` : cat.name}
+                      </span>
                     </td>
 
                     <td style={{ padding: '14px 20px' }}>
@@ -556,14 +651,20 @@ export default function CategoriesClient({
                         style={{
                           fontSize: '0.75rem',
                           padding: '3px 10px',
-                          borderRadius: '9999px',
-                          backgroundColor: section === 'accessories' ? '#ecfdf5' : '#eff6ff',
-                          color: section === 'accessories' ? '#065f46' : '#1e40af',
+                          borderRadius: '4px',
+                          backgroundColor: isSub ? '#e0f2fe' : '#f4f4f5',
+                          color: isSub ? '#0369a1' : '#3f3f46',
                           fontWeight: 600
                         }}
                       >
-                        {section === 'accessories' ? 'Accessoires' : 'Vêtements'}
+                        {isSub ? `Sous-catégorie (${parentName})` : 'Catégorie Principale'}
                       </span>
+                    </td>
+
+                    <td style={{ padding: '14px 20px' }}>
+                      <code style={{ fontSize: '0.82rem', color: '#71717a', backgroundColor: '#f4f4f5', padding: '2px 8px', borderRadius: '4px' }}>
+                        {cat.cleanSlug}
+                      </code>
                     </td>
 
                     <td style={{ padding: '14px 20px', textAlign: 'center' }}>
@@ -573,74 +674,39 @@ export default function CategoriesClient({
                     </td>
 
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      {isEditing ? (
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                          <button
-                            onClick={() => handleUpdate(cat.id)}
-                            disabled={editLoading || !editName.trim()}
-                            style={{
-                              backgroundColor: '#09090b',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '6px 14px',
-                              fontSize: '0.82rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {editLoading ? '...' : 'Enregistrer'}
-                          </button>
-                          <button
-                            onClick={cancelEdit}
-                            style={{
-                              backgroundColor: '#f4f4f5',
-                              color: '#3f3f46',
-                              border: '1px solid #e4e4e7',
-                              borderRadius: '6px',
-                              padding: '6px 14px',
-                              fontSize: '0.82rem',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Annuler
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                          <button
-                            onClick={() => startEdit(cat)}
-                            style={{
-                              background: '#fff',
-                              border: '1px solid #d4d4d8',
-                              color: '#09090b',
-                              padding: '5px 12px',
-                              borderRadius: '6px',
-                              fontSize: '0.82rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Modifier
-                          </button>
-                          <button
-                            onClick={() => handleDelete(cat)}
-                            disabled={isDeleting}
-                            style={{
-                              background: '#fff',
-                              border: '1px solid #fecaca',
-                              color: '#dc2626',
-                              padding: '5px 12px',
-                              borderRadius: '6px',
-                              fontSize: '0.82rem',
-                              fontWeight: 600,
-                              cursor: isDeleting ? 'not-allowed' : 'pointer'
-                            }}
-                          >
-                            {isDeleting ? '...' : 'Supprimer'}
-                          </button>
-                        </div>
-                      )}
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        <button
+                          onClick={() => startEdit(cat)}
+                          style={{
+                            background: '#fff',
+                            border: '1px solid #d4d4d8',
+                            color: '#09090b',
+                            padding: '5px 12px',
+                            borderRadius: '6px',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDelete(cat)}
+                          disabled={isDeleting}
+                          style={{
+                            background: '#fff',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                            padding: '5px 12px',
+                            borderRadius: '6px',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                            cursor: isDeleting ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          {isDeleting ? '...' : 'Supprimer'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

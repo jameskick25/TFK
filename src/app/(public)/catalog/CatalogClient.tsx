@@ -1,26 +1,105 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  display_order?: number;
+}
+
+interface ParsedCategory extends Category {
+  parentId: string | null;
+  cleanSlug: string;
+  isSub: boolean;
+}
+
+function parseCategory(cat: Category): ParsedCategory {
+  if (cat.slug?.startsWith('sub--')) {
+    const withoutPrefix = cat.slug.slice(5);
+    const splitIndex = withoutPrefix.indexOf('--');
+    if (splitIndex !== -1) {
+      const parentId = withoutPrefix.slice(0, splitIndex);
+      const cleanSlug = withoutPrefix.slice(splitIndex + 2);
+      return {
+        ...cat,
+        parentId,
+        cleanSlug,
+        isSub: true
+      };
+    }
+  }
+  return {
+    ...cat,
+    parentId: null,
+    cleanSlug: cat.slug,
+    isSub: false
+  };
+}
+
 export default function CatalogClient({ 
-  categories, 
+  categories: rawCategories, 
   products,
   initialFilter = 'all'
 }: { 
-  categories: any[], 
-  products: any[],
-  initialFilter?: string
+  categories: Category[]; 
+  products: any[];
+  initialFilter?: string;
 }) {
-  const [activeFilter, setActiveFilter] = useState(initialFilter);
-  const [searchInput, setSearchInput] = useState('');
-  const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const { language } = useLanguage();
   const t = useTranslation(language);
 
-  const handleSearch = () => {
+  // Parse categories hierarchy
+  const parsedCategories = useMemo(() => {
+    return (rawCategories || []).map(parseCategory);
+  }, [rawCategories]);
+
+  const parentCategories = useMemo(() => {
+    return parsedCategories.filter(c => !c.isSub);
+  }, [parsedCategories]);
+
+  // Filter & Sort state
+  const [selectedParent, setSelectedParent] = useState<string>('all');
+  const [selectedSub, setSelectedSub] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'name-asc'>('default');
+  const [searchInput, setSearchInput] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Initialize filter from prop if passed
+  useEffect(() => {
+    if (initialFilter && initialFilter !== 'all') {
+      const matched = parsedCategories.find(c => c.slug === initialFilter || c.cleanSlug === initialFilter);
+      if (matched) {
+        if (matched.isSub && matched.parentId) {
+          setSelectedParent(matched.parentId);
+          setSelectedSub(matched.id);
+        } else {
+          setSelectedParent(matched.id);
+          setSelectedSub('all');
+        }
+      }
+    }
+  }, [initialFilter, parsedCategories]);
+
+  // Available subcategories for the selected parent
+  const availableSubcategories = useMemo(() => {
+    if (selectedParent === 'all') return [];
+    return parsedCategories.filter(c => c.isSub && (c.parentId === selectedParent || c.parentId === parentCategories.find(p => p.id === selectedParent)?.slug));
+  }, [selectedParent, parsedCategories, parentCategories]);
+
+  // Reset subcategory if parent changes and sub is not in new parent
+  const handleParentChange = (newParentId: string) => {
+    setSelectedParent(newParentId);
+    setSelectedSub('all');
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
     setActiveSearchQuery(searchInput);
   };
 
@@ -29,11 +108,30 @@ export default function CatalogClient({
     setActiveSearchQuery('');
   };
 
-  const expandedProducts = React.useMemo(() => {
+  const handleResetFilters = () => {
+    setSelectedParent('all');
+    setSelectedSub('all');
+    setSortBy('default');
+    setSearchInput('');
+    setActiveSearchQuery('');
+    setMobileFilterOpen(false);
+  };
+
+  // Count active filters
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedParent !== 'all') count++;
+    if (selectedSub !== 'all') count++;
+    if (sortBy !== 'default') count++;
+    if (activeSearchQuery.trim()) count++;
+    return count;
+  }, [selectedParent, selectedSub, sortBy, activeSearchQuery]);
+
+  // Expand product variations if needed
+  const expandedProducts = useMemo(() => {
     const result: any[] = [];
     for (const p of products) {
       if (p.show_colors_separately && p.product_images?.length > 1) {
-        // Find unique colors
         const colors = Array.from(new Set(p.product_images.map((img: any) => img.color).filter(Boolean)));
         if (colors.length > 0) {
           colors.forEach((color) => {
@@ -56,192 +154,573 @@ export default function CatalogClient({
     return result;
   }, [products]);
 
-  const filteredProducts = React.useMemo(() => {
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
     let list = expandedProducts;
-    
-    if (activeFilter !== 'all') {
-      list = list.filter(p => p.categories?.slug === activeFilter);
+
+    // 1. Filter by category / subcategory
+    if (selectedSub !== 'all') {
+      list = list.filter(p => p.category_id === selectedSub);
+    } else if (selectedParent !== 'all') {
+      // Products directly in parent OR in any of parent's subcategories
+      const allowedCatIds = new Set([
+        selectedParent,
+        ...availableSubcategories.map(s => s.id)
+      ]);
+      list = list.filter(p => allowedCatIds.has(p.category_id));
     }
-    
+
+    // 2. Filter by search query
     if (activeSearchQuery.trim() !== '') {
       const query = activeSearchQuery.toLowerCase().trim();
-      
-      list = list.reduce((acc: any[], p) => {
-        const colorParam = p.slug.includes('?color=') ? decodeURIComponent(p.slug.split('?color=')[1]) : null;
-
-        // 1. Check for exact size match in stock
-        const matchingSizeVariants = p.product_variants?.filter((v: any) => 
-          v.stock > 0 && v.size && v.size.toLowerCase().trim() === query
-        ) || [];
-
-        const hasMatchingSize = matchingSizeVariants.length > 0;
-
-        if (hasMatchingSize) {
-          if (colorParam) {
-            // If expanded by color, ensure THIS color has the size
-            const thisColorHasSize = matchingSizeVariants.some((v: any) => v.color === colorParam);
-            if (thisColorHasSize) {
-              acc.push(p);
-            }
-            return acc;
-          } else {
-            // Not expanded by color. Filter the images so only available colors are shown!
-            const validColors = new Set(matchingSizeVariants.map((v: any) => v.color).filter(Boolean));
-            if (validColors.size > 0 && p.product_images) {
-              const validImages = p.product_images.filter((img: any) => validColors.has(img.color));
-              acc.push({
-                ...p,
-                product_images: validImages.length > 0 ? validImages : p.product_images
-              });
-            } else {
-              acc.push(p);
-            }
-            return acc;
-          }
-        }
-
-        // 2. Check for color match
-        if (colorParam && colorParam.toLowerCase().includes(query)) {
-          acc.push(p);
-          return acc;
-        }
-
-        // 3. Check for name match (Avoid returning everything when searching a single letter like "s")
-        if (query.length > 2) {
-          if (p.name.toLowerCase().includes(query)) {
-            acc.push(p);
-          }
-        } else {
-          // For short queries (1-2 chars), require exact word match in the name
-          const words = p.name.toLowerCase().split(/[\s-]+/);
-          if (words.includes(query)) {
-            acc.push(p);
-          }
-        }
-
-        return acc;
-      }, []);
+      list = list.filter(p => {
+        const nameMatch = p.name?.toLowerCase().includes(query);
+        const descMatch = p.description?.toLowerCase().includes(query);
+        const sizeMatch = p.product_variants?.some((v: any) => v.size?.toLowerCase().trim() === query);
+        const colorMatch = p.product_variants?.some((v: any) => v.color?.toLowerCase().trim() === query);
+        return nameMatch || descMatch || sizeMatch || colorMatch;
+      });
     }
-    
+
+    // 3. Sort
+    if (sortBy === 'price-asc') {
+      list = [...list].sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortBy === 'price-desc') {
+      list = [...list].sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (sortBy === 'name-asc') {
+      list = [...list].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }
+
     return list;
-  }, [expandedProducts, activeFilter, activeSearchQuery]);
+  }, [expandedProducts, selectedParent, selectedSub, availableSubcategories, activeSearchQuery, sortBy]);
+
+  const selectedParentObj = parentCategories.find(p => p.id === selectedParent);
+  const selectedSubObj = availableSubcategories.find(s => s.id === selectedSub);
 
   return (
-    <section className="section" style={{ paddingTop: '24px', backgroundColor: 'var(--bg)', minHeight: '100vh' }}>
-      <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
-        
-        {/* Filters Card */}
-        <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '20px', marginBottom: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-          
-          {/* Search Bar */}
-          <form 
-            onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
-            style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}
-          >
-            <input 
-              type="text"
-              placeholder={language === 'ar' ? 'ابحث عن مقاس (مثل: M, 42)، لون أو اسم...' : 'Rechercher une taille (ex: M, 42), une couleur ou un nom...'}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-            {activeSearchQuery ? (
-              <button 
-                type="button" 
-                onClick={handleClearSearch}
-                style={{
-                  padding: '0 20px',
-                  backgroundColor: '#fee2e2',
-                  color: '#ef4444',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  fontSize: '1.2rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            ) : (
-              <button 
-                type="submit"
-                style={{
-                  padding: '0 20px',
-                  backgroundColor: 'var(--accent)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                {language === 'ar' ? 'بحث' : 'Rechercher'}
-              </button>
-            )}
-          </form>
+    <section className="section" style={{ minHeight: '80vh', padding: '32px 0 64px 0' }}>
+      <div className="container">
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#4b5563', fontWeight: 500, fontSize: '0.95rem' }}>
-            <span>{t('filter_category')}</span>
-          </div>
-          <div className="filter-buttons" style={{ marginBottom: 0, paddingBottom: 0, justifyContent: 'flex-start' }}>
-            <button 
-              className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveFilter('all')}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              {t('all')} 
-              <span style={{ 
-                backgroundColor: activeFilter === 'all' ? 'rgba(255,255,255,0.25)' : '#e5e7eb', 
-                color: activeFilter === 'all' ? '#fff' : '#6b7280',
-                padding: '2px 8px', 
-                borderRadius: '12px', 
-                fontSize: '0.75rem',
-                fontWeight: 'bold'
-              }}>
-                {products.length}
-              </span>
-            </button>
-            {categories.map((cat) => {
-              return (
-                <button 
-                  key={cat.id}
-                  className={`filter-btn ${activeFilter === cat.slug ? 'active' : ''}`}
-                  onClick={() => setActiveFilter(cat.slug)}
+        {/* ── Modern Filter Bar ── */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e4e4e7',
+            padding: '16px 20px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            marginBottom: '24px'
+          }}
+        >
+          {/* Row 1: Search + Mobile Filter Trigger + Desktop Selects */}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Search Box */}
+            <form onSubmit={handleSearch} style={{ display: 'flex', flex: 1, minWidth: '220px', position: 'relative' }}>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder={language === 'ar' ? 'ابحث عن منتج، مقاس، لون...' : 'Rechercher un vêtement, taille, couleur...'}
+                style={{
+                  width: '100%',
+                  padding: '11px 42px 11px 16px',
+                  borderRadius: '10px',
+                  border: '1px solid #d4d4d8',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  backgroundColor: '#fafafa'
+                }}
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#71717a',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
                 >
-                  {cat.name}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
-              );
-            })}
+              ) : (
+                <button
+                  type="submit"
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#71717a',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </button>
+              )}
+            </form>
+
+            {/* Desktop Filters (>= 768px) */}
+            <div className="admin-desktop-view" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              {/* Category Select */}
+              <div style={{ position: 'relative' }}>
+                <select
+                  value={selectedParent}
+                  onChange={(e) => handleParentChange(e.target.value)}
+                  style={{
+                    padding: '11px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid #d4d4d8',
+                    backgroundColor: selectedParent !== 'all' ? '#09090b' : '#ffffff',
+                    color: selectedParent !== 'all' ? '#ffffff' : '#09090b',
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    minWidth: '160px'
+                  }}
+                >
+                  <option value="all">Toutes les catégories</option>
+                  {parentCategories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Subcategory Select (appears if parent chosen and has subs) */}
+              {availableSubcategories.length > 0 && (
+                <div style={{ position: 'relative' }}>
+                  <select
+                    value={selectedSub}
+                    onChange={(e) => setSelectedSub(e.target.value)}
+                    style={{
+                      padding: '11px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #d4d4d8',
+                      backgroundColor: selectedSub !== 'all' ? 'var(--accent)' : '#ffffff',
+                      color: selectedSub !== 'all' ? '#ffffff' : '#09090b',
+                      fontSize: '0.88rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      outline: 'none',
+                      minWidth: '150px'
+                    }}
+                  >
+                    <option value="all">Toutes sous-catégories</option>
+                    {availableSubcategories.map(sub => (
+                      <option key={sub.id} value={sub.id}>{sub.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Sort Select */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                style={{
+                  padding: '11px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid #d4d4d8',
+                  backgroundColor: '#ffffff',
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  color: '#3f3f46',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  minWidth: '150px'
+                }}
+              >
+                <option value="default">Nouveautés</option>
+                <option value="price-asc">Prix croissant</option>
+                <option value="price-desc">Prix décroissant</option>
+                <option value="name-asc">Nom A-Z</option>
+              </select>
+            </div>
+
+            {/* Mobile Filter Button (< 768px) */}
+            <div className="admin-mobile-view" style={{ display: 'none' }}>
+              <button
+                type="button"
+                onClick={() => setMobileFilterOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '11px 16px',
+                  borderRadius: '10px',
+                  backgroundColor: activeFiltersCount > 0 ? '#09090b' : '#ffffff',
+                  color: activeFiltersCount > 0 ? '#ffffff' : '#09090b',
+                  border: '1px solid #d4d4d8',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                Filtres
+                {activeFiltersCount > 0 && (
+                  <span
+                    style={{
+                      backgroundColor: 'var(--accent)',
+                      color: '#ffffff',
+                      borderRadius: '9999px',
+                      padding: '1px 6px',
+                      fontSize: '0.72rem',
+                      fontWeight: 800
+                    }}
+                  >
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Active Filter Chips */}
+          {activeFiltersCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f4f4f5' }}>
+              <span style={{ fontSize: '0.78rem', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Filtres actifs :
+              </span>
+
+              {selectedParent !== 'all' && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    backgroundColor: '#f4f4f5',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#09090b'
+                  }}
+                >
+                  {selectedParentObj?.name || 'Catégorie'}
+                  <button onClick={() => handleParentChange('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717a', padding: 0 }}>✕</button>
+                </span>
+              )}
+
+              {selectedSub !== 'all' && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    backgroundColor: '#fef3c7',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#92400e'
+                  }}
+                >
+                  {selectedSubObj?.name || 'Sous-catégorie'}
+                  <button onClick={() => setSelectedSub('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', padding: 0 }}>✕</button>
+                </span>
+              )}
+
+              {sortBy !== 'default' && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    backgroundColor: '#f4f4f5',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#09090b'
+                  }}
+                >
+                  Tri : {sortBy === 'price-asc' ? 'Prix croissant' : sortBy === 'price-desc' ? 'Prix décroissant' : 'Nom A-Z'}
+                  <button onClick={() => setSortBy('default')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717a', padding: 0 }}>✕</button>
+                </span>
+              )}
+
+              {activeSearchQuery && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    backgroundColor: '#f4f4f5',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#09090b'
+                  }}
+                >
+                  &quot;{activeSearchQuery}&quot;
+                  <button onClick={handleClearSearch} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717a', padding: 0 }}>✕</button>
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--accent)',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Effacer tout
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ── Mobile Filter Slide-out Drawer ── */}
+        {mobileFilterOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9999,
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                width: '85%',
+                maxWidth: '360px',
+                height: '100%',
+                padding: '24px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
+                overflowY: 'auto'
+              }}
+            >
+              {/* Drawer Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #f4f4f5' }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#09090b' }}>
+                  Filtrer & Trier
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: '#71717a', cursor: 'pointer' }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Catégories principales */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#71717a', display: 'block', marginBottom: '8px' }}>
+                  Catégorie
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleParentChange('all')}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid #e4e4e7',
+                      backgroundColor: selectedParent === 'all' ? '#09090b' : '#ffffff',
+                      color: selectedParent === 'all' ? '#ffffff' : '#09090b',
+                      fontWeight: 600,
+                      textAlign: 'left',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Toutes les catégories
+                  </button>
+                  {parentCategories.map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleParentChange(cat.id)}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid #e4e4e7',
+                        backgroundColor: selectedParent === cat.id ? '#09090b' : '#ffffff',
+                        color: selectedParent === cat.id ? '#ffffff' : '#09090b',
+                        fontWeight: 600,
+                        textAlign: 'left',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sous-catégories */}
+              {availableSubcategories.length > 0 && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#71717a', display: 'block', marginBottom: '8px' }}>
+                    Sous-catégorie
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSub('all')}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid #e4e4e7',
+                        backgroundColor: selectedSub === 'all' ? 'var(--accent)' : '#ffffff',
+                        color: selectedSub === 'all' ? '#ffffff' : '#09090b',
+                        fontWeight: 600,
+                        textAlign: 'left',
+                        fontSize: '0.88rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Toutes les sous-catégories
+                    </button>
+                    {availableSubcategories.map(sub => (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => setSelectedSub(sub.id)}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid #e4e4e7',
+                          backgroundColor: selectedSub === sub.id ? 'var(--accent)' : '#ffffff',
+                          color: selectedSub === sub.id ? '#ffffff' : '#09090b',
+                          fontWeight: 600,
+                          textAlign: 'left',
+                          fontSize: '0.88rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ↳ {sub.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tri */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#71717a', display: 'block', marginBottom: '8px' }}>
+                  Trier par
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {[
+                    { id: 'default', label: 'Nouveautés' },
+                    { id: 'price-asc', label: 'Prix croissant' },
+                    { id: 'price-desc', label: 'Prix décroissant' },
+                    { id: 'name-asc', label: 'Nom A-Z' }
+                  ].map(sortOpt => (
+                    <button
+                      key={sortOpt.id}
+                      type="button"
+                      onClick={() => setSortBy(sortOpt.id as any)}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid #e4e4e7',
+                        backgroundColor: sortBy === sortOpt.id ? '#f4f4f5' : '#ffffff',
+                        color: '#09090b',
+                        fontWeight: sortBy === sortOpt.id ? 700 : 500,
+                        textAlign: 'left',
+                        fontSize: '0.88rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {sortOpt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '16px', borderTop: '1px solid #f4f4f5' }}>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  style={{
+                    backgroundColor: '#09090b',
+                    color: '#ffffff',
+                    padding: '14px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
+                    width: '100%'
+                  }}
+                >
+                  Voir les {filteredProducts.length} articles
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  style={{
+                    backgroundColor: '#f4f4f5',
+                    color: '#3f3f46',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: '1px solid #e4e4e7',
+                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    width: '100%'
+                  }}
+                >
+                  Réinitialiser tous les filtres
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Counter Info */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', color: '#71717a', fontSize: '0.88rem' }}>
+          <div>
+            <strong>{filteredProducts.length}</strong> {t('products_count')}
           </div>
         </div>
 
-        {/* Display info */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', color: '#6b7280', fontSize: '0.9rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {t('showing_products')} {filteredProducts.length} {t('products_count')}
-          </div>
-        </div>
-
-        {/* Product Grid */}
+        {/* ── Product Grid ── */}
         <div className="products-grid" style={{ gap: '16px' }}>
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => {
               const mainImage = product.product_images?.[0]?.url || '/placeholder.jpg';
               
-              // Calculate discount percentage
               const discount = product.old_price && product.old_price > product.price 
                 ? Math.round(((product.old_price - product.price) / product.old_price) * 100) 
                 : 0;
@@ -269,11 +748,11 @@ export default function CatalogClient({
                       <img src={mainImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </Link>
                   </div>
-                  <div className="product-card-body" style={{ padding: '10px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                  <div className="product-card-body" style={{ padding: '12px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                     <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                       <h3 className="product-card-title" style={{ 
                         fontSize: '0.9rem', 
-                        marginBottom: '4px', 
+                        marginBottom: '6px', 
                         fontWeight: '600', 
                         color: '#1f2937',
                         display: '-webkit-box',
@@ -291,12 +770,12 @@ export default function CatalogClient({
                     </Link>
                     
                     <div className="price-container" style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span className="product-price" style={{ color: '#1a1f36', fontWeight: '800', fontSize: '1rem' }}>
-                        {product.price} DA
+                      <span className="product-price" style={{ color: '#09090b', fontWeight: '800', fontSize: '1rem' }}>
+                        {product.price?.toLocaleString()} DA
                       </span>
                       {product.old_price && (
-                        <span className="product-price-old" style={{ textDecoration: 'line-through', color: '#9ca3af', fontSize: '0.75rem' }}>
-                          {product.old_price} DA
+                        <span className="product-price-old" style={{ textDecoration: 'line-through', color: '#9ca3af', fontSize: '0.78rem' }}>
+                          {product.old_price?.toLocaleString()} DA
                         </span>
                       )}
                     </div>
@@ -311,15 +790,15 @@ export default function CatalogClient({
                           alignItems: 'center', 
                           gap: '6px', 
                           width: '100%', 
-                          padding: '8px', 
-                          backgroundColor: 'var(--accent)', // Theme accent color
+                          padding: '10px', 
+                          backgroundColor: 'var(--accent)',
                           border: 'none', 
-                          borderRadius: '6px', 
+                          borderRadius: '8px', 
                           color: '#fff', 
                           fontWeight: '600', 
                           fontSize: '0.85rem',
-                          transition: 'background-color 0.2s',
-                          textDecoration: 'none'
+                          textDecoration: 'none',
+                          letterSpacing: '0.02em'
                         }}
                       >
                         {t('order')}
@@ -330,9 +809,27 @@ export default function CatalogClient({
               );
             })
           ) : (
-            <p style={{ textAlign: 'center', gridColumn: '1 / -1', marginTop: '40px', color: '#6b7280' }}>
-              {t('no_products')}
-            </p>
+            <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '60px 20px', color: '#71717a' }}>
+              <p style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '12px' }}>{t('no_products')}</p>
+              {activeFiltersCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  style={{
+                    padding: '8px 18px',
+                    backgroundColor: '#09090b',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Réinitialiser les filtres
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
