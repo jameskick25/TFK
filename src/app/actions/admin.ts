@@ -21,7 +21,7 @@ export async function createProduct(formData: FormData) {
   const old_price = formData.get('old_price') ? parseInt(formData.get('old_price') as string) : null;
   const categoryId = formData.get('category_id') as string;
   
-  // Nouveaux champs structurés
+  // Structured variants data
   const variantsDataString = formData.get('variantsData') as string;
   
   if (!name || !price || !categoryId || !variantsDataString) {
@@ -52,44 +52,103 @@ export async function createProduct(formData: FormData) {
       return { success: false, error: productError?.message || 'Erreur DB lors de la création' };
     }
 
-    // 2. Handle Variants and Images
-    let isFirstImage = true;
+    // 2. Handle Variants and Images in parallel
     const variantsToInsert = [];
+    const imageUploadTasks: Promise<{ url: string | null; color: string | null; isMain: boolean }>[] = [];
+    let isFirstImage = true;
 
-    for (const variantGroup of variantsData) {
-      const colorName = variantGroup.color;
-      const sizes = variantGroup.sizes;
-      
-      // Check if there is an image for this color
-      const image = formData.get(`image_${colorName}`) as File;
-      
-      if (image && image.size > 0) {
-        const { compressAndUploadImage } = await import('./compress-and-upload');
-        const storageName = `${product.id}-${colorName || 'main'}-${Math.floor(Math.random() * 10000)}`;
-        const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(image, storageName);
+    for (let i = 0; i < variantsData.length; i++) {
+      const variantGroup = variantsData[i];
+      const colorName = variantGroup.color ? variantGroup.color.trim() : null;
+      const sizes = variantGroup.sizes || [];
 
-        if (!uploadError && optimizedUrl) {
-          await supabase.from('product_images').insert({
-            product_id: product.id,
-            url: optimizedUrl,
-            color: colorName || null,
-            is_main: isFirstImage // First uploaded image is main
-          });
-          isFirstImage = false;
-        } else {
-          console.error('Erreur upload image pour couleur', colorName, uploadError);
+      // Collect all images uploaded for this variant
+      const files = (formData.getAll(`images_variant_${i}`) as File[]).filter(f => f && f.size > 0);
+      
+      // Fallback for legacy key
+      if (files.length === 0 && colorName) {
+        const legacyFile = formData.get(`image_${colorName}`) as File;
+        if (legacyFile && legacyFile.size > 0) {
+          files.push(legacyFile);
         }
+      }
+
+      for (let j = 0; j < files.length; j++) {
+        const file = files[j];
+        const isMain = isFirstImage;
+        isFirstImage = false;
+
+        imageUploadTasks.push((async () => {
+          try {
+            const { compressAndUploadImage } = await import('./compress-and-upload');
+            const storageName = `${product.id}-${colorName || 'main'}-${i}-${j}-${Math.floor(Math.random() * 10000)}`;
+            const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(file, storageName);
+            if (uploadError || !optimizedUrl) {
+              console.error('Erreur upload image couleur:', colorName, uploadError);
+              return { url: null, color: colorName, isMain };
+            }
+            return { url: optimizedUrl, color: colorName, isMain };
+          } catch (e) {
+            console.error('Exception upload image:', e);
+            return { url: null, color: colorName, isMain };
+          }
+        })());
       }
 
       // Prepare variants for this color
       for (const sizeObj of sizes) {
-        variantsToInsert.push({
-          product_id: product.id,
-          color: colorName || null,
-          size: sizeObj.size || null,
-          stock: sizeObj.stock
-        });
+        if (sizeObj.size?.trim()) {
+          variantsToInsert.push({
+            product_id: product.id,
+            color: colorName || null,
+            size: sizeObj.size.trim(),
+            stock: Number(sizeObj.stock) || 0
+          });
+        }
       }
+    }
+
+    // General images (optional, not tied to a specific color)
+    const generalFiles = (formData.getAll('images_general') as File[]).filter(f => f && f.size > 0);
+    for (let j = 0; j < generalFiles.length; j++) {
+      const file = generalFiles[j];
+      const isMain = isFirstImage;
+      isFirstImage = false;
+
+      imageUploadTasks.push((async () => {
+        try {
+          const { compressAndUploadImage } = await import('./compress-and-upload');
+          const storageName = `${product.id}-general-${j}-${Math.floor(Math.random() * 10000)}`;
+          const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(file, storageName);
+          if (uploadError || !optimizedUrl) {
+            console.error('Erreur upload image générale:', uploadError);
+            return { url: null, color: null, isMain };
+          }
+          return { url: optimizedUrl, color: null, isMain };
+        } catch (e) {
+          console.error('Exception upload image générale:', e);
+          return { url: null, color: null, isMain };
+        }
+      })());
+    }
+
+    // Await all image uploads in parallel
+    const uploadedImages = await Promise.all(imageUploadTasks);
+
+    const imagesToInsert = uploadedImages
+      .filter(img => img.url !== null)
+      .map(img => ({
+        product_id: product.id,
+        url: img.url!,
+        color: img.color,
+        is_main: img.isMain
+      }));
+
+    if (imagesToInsert.length > 0) {
+      if (!imagesToInsert.some(img => img.is_main)) {
+        imagesToInsert[0].is_main = true;
+      }
+      await supabase.from('product_images').insert(imagesToInsert);
     }
 
     // 3. Insert all variants
@@ -312,8 +371,87 @@ export async function updateBulkStock(updates: Record<string, number>) {
   }
 }
 
-// ── Modification Produit (Corrigé : sans show_colors_separately inexistant) ──
-export async function updateProductInfo(formData: FormData) {
+// ── Gestion des Images Produit (Suppression, Photo Principale) ──────
+export async function deleteProductImage(imageId: string, imageUrl: string) {
+  try {
+    const supabase = await createAdminClient();
+    if (!imageId) return { success: false, error: 'ID image requis' };
+
+    // 1. Delete record from DB
+    const { error: dbError } = await supabase
+      .from('product_images')
+      .delete()
+      .eq('id', imageId);
+
+    if (dbError) {
+      console.error('Erreur deleteProductImage DB:', dbError);
+      return { success: false, error: dbError.message };
+    }
+
+    // 2. Remove file from Supabase storage if possible
+    if (imageUrl) {
+      try {
+        const parts = imageUrl.split('/');
+        const fileName = parts[parts.length - 1]?.split('?')[0];
+        if (fileName) {
+          await supabase.storage.from('products').remove([decodeURIComponent(fileName)]);
+        }
+      } catch (storageErr) {
+        console.warn('Erreur suppression storage image:', storageErr);
+      }
+    }
+
+    revalidatePath('/admin/products');
+    revalidatePath('/catalog');
+    revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Erreur inattendue deleteProductImage:', err);
+    return { success: false, error: err.message || 'Erreur serveur' };
+  }
+}
+
+export async function setMainProductImage(productId: string, imageId: string) {
+  try {
+    const supabase = await createAdminClient();
+    if (!productId || !imageId) return { success: false, error: 'Paramètres manquants' };
+
+    // 1. Set is_main = false for all images of this product
+    await supabase
+      .from('product_images')
+      .update({ is_main: false })
+      .eq('product_id', productId);
+
+    // 2. Set is_main = true for the selected image
+    const { error } = await supabase
+      .from('product_images')
+      .update({ is_main: true })
+      .eq('id', imageId);
+
+    if (error) {
+      console.error('Erreur setMainProductImage:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/admin/products');
+    revalidatePath(`/admin/products/${productId}`);
+    revalidatePath('/catalog');
+    revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Erreur inattendue setMainProductImage:', err);
+    return { success: false, error: err.message || 'Erreur serveur' };
+  }
+}
+
+// ── Modification Complète du Produit (Détails, Variantes, Stocks & Nouvelles Photos) ──
+export async function updateProductComplete(formData: FormData) {
   try {
     const supabase = await createAdminClient();
     const id = formData.get('productId') as string;
@@ -323,12 +461,14 @@ export async function updateProductInfo(formData: FormData) {
     const old_price = formData.get('old_price') ? parseInt(formData.get('old_price') as string) : null;
     const category_id = formData.get('category_id') as string;
     const is_active = formData.get('is_active') === 'true';
+    const variantsDataString = formData.get('variantsData') as string;
 
     if (!id || !name?.trim() || isNaN(price)) {
       return { success: false, error: 'Champs obligatoires manquants ou invalides' };
     }
 
-    const { error } = await supabase
+    // 1. Update basic product info
+    const { error: prodError } = await supabase
       .from('products')
       .update({
         name: name.trim(),
@@ -340,13 +480,121 @@ export async function updateProductInfo(formData: FormData) {
       })
       .eq('id', id);
 
-    if (error) {
-      console.error('Erreur updateProductInfo:', error);
-      return { success: false, error: error.message };
+    if (prodError) {
+      console.error('Erreur updateProductComplete products:', prodError);
+      return { success: false, error: prodError.message };
+    }
+
+    // 2. Handle Variants & Sizes / Stocks if provided
+    if (variantsDataString) {
+      const variantsData: Array<{
+        color: string;
+        sizes: Array<{ id?: string; size: string; stock: number }>;
+      }> = JSON.parse(variantsDataString);
+
+      // Fetch existing variants for this product
+      const { data: existingVariants } = await supabase
+        .from('product_variants')
+        .select('id')
+        .eq('product_id', id);
+
+      const existingIds = new Set((existingVariants || []).map(v => v.id));
+      const submittedIds = new Set<string>();
+
+      for (const variantGroup of variantsData) {
+        const color = variantGroup.color ? variantGroup.color.trim() : null;
+        for (const sizeObj of (variantGroup.sizes || [])) {
+          if (!sizeObj.size?.trim()) continue;
+
+          if (sizeObj.id && existingIds.has(sizeObj.id)) {
+            // Update existing variant
+            submittedIds.add(sizeObj.id);
+            await supabase
+              .from('product_variants')
+              .update({
+                color,
+                size: sizeObj.size.trim(),
+                stock: Number(sizeObj.stock) || 0
+              })
+              .eq('id', sizeObj.id);
+          } else {
+            // Insert new variant
+            const { data: newVar } = await supabase
+              .from('product_variants')
+              .insert({
+                product_id: id,
+                color,
+                size: sizeObj.size.trim(),
+                stock: Number(sizeObj.stock) || 0
+              })
+              .select('id')
+              .single();
+
+            if (newVar?.id) {
+              submittedIds.add(newVar.id);
+            }
+          }
+        }
+      }
+
+      // Delete variants that were removed
+      const toDelete = Array.from(existingIds).filter(varId => !submittedIds.has(varId));
+      if (toDelete.length > 0) {
+        await supabase
+          .from('product_variants')
+          .delete()
+          .in('id', toDelete);
+      }
+    }
+
+    // 3. Upload any new photos
+    const newFiles = (formData.getAll('new_images') as File[]).filter(f => f && f.size > 0);
+    const newImageColors = formData.getAll('new_image_colors') as string[];
+
+    if (newFiles.length > 0) {
+      // Check if product already has a main image
+      const { data: currentImages } = await supabase
+        .from('product_images')
+        .select('id, is_main')
+        .eq('product_id', id);
+
+      let hasMain = currentImages?.some(img => img.is_main) || false;
+
+      const uploadTasks = newFiles.map(async (file, idx) => {
+        try {
+          const { compressAndUploadImage } = await import('./compress-and-upload');
+          const colorName = newImageColors[idx] ? newImageColors[idx].trim() : null;
+          const storageName = `${id}-new-${idx}-${Math.floor(Math.random() * 10000)}`;
+          const { url: optimizedUrl, error: uploadError } = await compressAndUploadImage(file, storageName);
+          if (uploadError || !optimizedUrl) {
+            console.error('Erreur upload nouvelle image:', uploadError);
+            return null;
+          }
+          const isMain = !hasMain && idx === 0;
+          if (isMain) hasMain = true;
+          return {
+            product_id: id,
+            url: optimizedUrl,
+            color: colorName || null,
+            is_main: isMain
+          };
+        } catch (e) {
+          console.error('Exception upload nouvelle image:', e);
+          return null;
+        }
+      });
+
+      const uploaded = (await Promise.all(uploadTasks)).filter(
+        (item): item is { product_id: string; url: string; color: string | null; is_main: boolean } => item !== null
+      );
+      if (uploaded.length > 0) {
+        await supabase.from('product_images').insert(uploaded);
+      }
     }
 
     revalidatePath('/admin/products');
     revalidatePath(`/admin/products/${id}`);
+    revalidatePath('/admin/stock');
     revalidatePath('/catalog');
     revalidatePath('/');
     revalidatePath('/clothes');
@@ -354,9 +602,14 @@ export async function updateProductInfo(formData: FormData) {
 
     return { success: true };
   } catch (err: any) {
-    console.error('Erreur inattendue updateProductInfo:', err);
+    console.error('Erreur inattendue updateProductComplete:', err);
     return { success: false, error: err.message || 'Erreur serveur inattendue' };
   }
+}
+
+// ── Modification Produit Rapide (Compatibilité) ──
+export async function updateProductInfo(formData: FormData) {
+  return updateProductComplete(formData);
 }
 
 export async function deleteProduct(productId: string) {

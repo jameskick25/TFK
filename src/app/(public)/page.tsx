@@ -151,17 +151,19 @@ export default async function Home() {
           <div className="products-grid">
             {featuredProducts.map((product) => {
               const mainImage = product.product_images?.[0]?.url || '/placeholder.jpg';
+              const section = getSectionForCategory(product.categories?.slug || '');
+              const productHref = `/${section === 'accessories' ? 'accessories' : 'clothes'}/product/${product.slug}`;
               return (
                 <div key={product.id} className="product-card" style={{ backgroundColor: '#fff' }}>
                   <div className="product-card-img">
-                    <Link href={`/product/${product.slug}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                    <Link href={productHref} style={{ display: 'block', width: '100%', height: '100%' }}>
                       <img src={mainImage} alt={product.name} />
                     </Link>
                   </div>
                   <div className="product-card-body" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                     <div>
                       <h3 className="product-card-title" style={{ minHeight: '2.5rem', lineHeight: '1.25', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                        <Link href={`/product/${product.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        <Link href={productHref} style={{ color: 'inherit', textDecoration: 'none' }}>
                           {product.name}
                         </Link>
                       </h3>
@@ -172,7 +174,7 @@ export default async function Home() {
                         )}
                       </div>
                     </div>
-                    <Link href={`/product/${product.slug}`} className="btn btn-primary btn-sm" style={{ width: '100%', textAlign: 'center', display: 'block', marginTop: '12px' }}>
+                    <Link href={productHref} className="btn btn-primary btn-sm" style={{ width: '100%', textAlign: 'center', display: 'block', marginTop: '12px' }}>
                       Découvrir l'article
                     </Link>
                   </div>

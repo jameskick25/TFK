@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTranslation } from '@/utils/translations';
+import { getSectionForCategory } from '@/utils/sections';
 
 interface Category {
   id: string;
@@ -725,6 +726,9 @@ export default function CatalogClient({
                 ? Math.round(((product.old_price - product.price) / product.old_price) * 100) 
                 : 0;
 
+              const section = getSectionForCategory(product.categories?.slug || '');
+              const productHref = `/${section === 'accessories' ? 'accessories' : 'clothes'}/product/${product.slug}`;
+
               return (
                 <div className="product-card" key={product.id} style={{ borderRadius: '12px', overflow: 'hidden', backgroundColor: '#fff', border: '1px solid #f3f4f6', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <div className="product-card-img" style={{ position: 'relative', aspectRatio: '4/5' }}>
@@ -744,12 +748,12 @@ export default function CatalogClient({
                         -{discount}%
                       </span>
                     )}
-                    <Link href={`/product/${product.slug}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                    <Link href={productHref} style={{ display: 'block', width: '100%', height: '100%' }}>
                       <img src={mainImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </Link>
                   </div>
                   <div className="product-card-body" style={{ padding: '12px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                    <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Link href={productHref} style={{ textDecoration: 'none', color: 'inherit' }}>
                       <h3 className="product-card-title" style={{ 
                         fontSize: '0.9rem', 
                         marginBottom: '6px', 
@@ -782,7 +786,7 @@ export default function CatalogClient({
                     
                     <div className="product-card-actions" style={{ marginTop: 'auto' }}>
                       <Link 
-                        href={`/product/${product.slug}`} 
+                        href={productHref} 
                         className="btn btn-primary" 
                         style={{ 
                           display: 'flex', 

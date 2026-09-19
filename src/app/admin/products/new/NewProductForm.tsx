@@ -10,49 +10,10 @@ type SizeVariant = {
 };
 
 type ColorVariant = {
-  id: string; // for internal tracking
+  id: string;
   colorName: string;
-  image: File | null;
+  images: File[];
   sizes: SizeVariant[];
-};
-
-const compressImage = async (file: File, maxWidth = 1200, quality = 0.8): Promise<File> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(file);
-        
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
-          } else {
-            resolve(file);
-          }
-        }, 'image/jpeg', quality);
-      };
-      img.onerror = () => resolve(file);
-    };
-    reader.onerror = () => resolve(file);
-  });
 };
 
 export default function NewProductForm({ categories }: { categories: any[] }) {
@@ -65,11 +26,13 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
   ];
 
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([
-    { id: '1', colorName: '', image: null, sizes: defaultSizes }
+    { id: '1', colorName: '', images: [], sizes: defaultSizes }
   ]);
 
+  const [generalImages, setGeneralImages] = useState<File[]>([]);
+
   const addColorVariant = () => {
-    setColorVariants([...colorVariants, { id: Date.now().toString(), colorName: '', image: null, sizes: defaultSizes }]);
+    setColorVariants([...colorVariants, { id: Date.now().toString(), colorName: '', images: [], sizes: defaultSizes }]);
   };
 
   const removeColorVariant = (id: string) => {
@@ -78,6 +41,41 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
 
   const updateColorVariant = (id: string, field: keyof ColorVariant, value: any) => {
     setColorVariants(colorVariants.map(v => v.id === id ? { ...v, [field]: value } : v));
+  };
+
+  const addImagesToVariant = (colorId: string, newFiles: FileList | null) => {
+    if (!newFiles || newFiles.length === 0) return;
+    const fileArray = Array.from(newFiles);
+    setColorVariants(colorVariants.map(v => {
+      if (v.id === colorId) {
+        return { ...v, images: [...v.images, ...fileArray] };
+      }
+      return v;
+    }));
+  };
+
+  const removeImageFromVariant = (colorId: string, index: number) => {
+    setColorVariants(colorVariants.map(v => {
+      if (v.id === colorId) {
+        const nextImages = [...v.images];
+        nextImages.splice(index, 1);
+        return { ...v, images: nextImages };
+      }
+      return v;
+    }));
+  };
+
+  const addGeneralImages = (newFiles: FileList | null) => {
+    if (!newFiles || newFiles.length === 0) return;
+    setGeneralImages(prev => [...prev, ...Array.from(newFiles)]);
+  };
+
+  const removeGeneralImage = (index: number) => {
+    setGeneralImages(prev => {
+      const next = [...prev];
+      next.splice(index, 1);
+      return next;
+    });
   };
 
   const addSize = (colorId: string) => {
@@ -118,25 +116,24 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
     const form = e.currentTarget;
     const formData = new FormData(form);
     
-    // Add the complex structure as a string
+    // Add structured variants
     const variantsData = colorVariants.map(v => ({
       color: v.colorName,
       sizes: v.sizes
     }));
     formData.append('variantsData', JSON.stringify(variantsData));
 
-    // Append all images
-    for (const v of colorVariants) {
-      if (v.image && v.colorName) {
-        try {
-          const compressed = await compressImage(v.image);
-          formData.append(`image_${v.colorName}`, compressed);
-        } catch (e) {
-          // Fallback if compression fails
-          formData.append(`image_${v.colorName}`, v.image);
-        }
-      }
-    }
+    // Append all images per color variant
+    colorVariants.forEach((v, index) => {
+      v.images.forEach(imgFile => {
+        formData.append(`images_variant_${index}`, imgFile);
+      });
+    });
+
+    // Append general images
+    generalImages.forEach(imgFile => {
+      formData.append('images_general', imgFile);
+    });
 
     try {
       const result = await createProduct(formData);
@@ -146,10 +143,10 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
         setIsSubmitting(false);
         alert('Erreur: ' + (result?.error || 'Veuillez remplir tous les champs obligatoires.'));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setIsSubmitting(false);
-      alert('Une erreur est survenue (peut-être l\'image est trop volumineuse).');
+      alert('Une erreur est survenue lors de l\'enregistrement du produit.');
     }
   };
 
@@ -281,7 +278,7 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
           </div>
         </div>
 
-        {/* Dynamic Variants Section */}
+        {/* Dynamic Variants Section (Couleurs, Photos Multiples, Tailles & Stocks) */}
         <div
           style={{
             padding: '20px',
@@ -293,10 +290,10 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
         >
           <div style={{ marginBottom: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#09090b' }}>
-              Couleurs, Photos et Stock par Taille
+              Couleurs, Photos Multiples et Stock par Taille
             </h3>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#71717a' }}>
-              Définissez les couleurs disponibles, uploadez la photo pour chaque couleur et ajustez les stocks.
+              Définissez les couleurs. Vous pouvez ajouter <strong>plusieurs photos</strong> par couleur (angles différents, zoom, etc.) et ajuster les stocks par taille.
             </p>
           </div>
 
@@ -333,13 +330,13 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
                       gap: '4px'
                     }}
                   >
-                    Supprimer
+                    Supprimer cette couleur
                   </button>
                 )}
                 
                 <div className="admin-form-row" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  {/* Left Column: Color and Photo */}
-                  <div className="admin-form-col" style={{ flex: '1', minWidth: '220px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Left Column: Color and Photos */}
+                  <div className="admin-form-col" style={{ flex: '1', minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
                         Couleur #{colorIndex + 1} *
@@ -359,26 +356,102 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
                       />
                     </div>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
-                        Photo du produit ({colorVariant.colorName || 'cette couleur'})
-                      </label>
+                    {/* Photos upload & previews */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
+                          Photos ({colorVariant.colorName || `Couleur #${colorIndex + 1}`})
+                        </label>
+                        <span style={{ fontSize: '0.75rem', color: '#71717a' }}>
+                          {colorVariant.images.length} photo{colorVariant.images.length > 1 ? 's' : ''} sélectionnée{colorVariant.images.length > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      
                       <input 
                         type="file" 
                         accept="image/*"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            updateColorVariant(colorVariant.id, 'image', e.target.files[0]);
-                          }
-                        }}
+                        multiple
+                        onChange={(e) => addImagesToVariant(colorVariant.id, e.target.files)}
                         style={{
                           padding: '8px',
                           border: '1px dashed #d4d4d8',
                           borderRadius: '6px',
                           backgroundColor: '#fafafa',
-                          fontSize: '0.82rem'
+                          fontSize: '0.82rem',
+                          cursor: 'pointer'
                         }} 
                       />
+
+                      {/* Image previews */}
+                      {colorVariant.images.length > 0 && (
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                          {colorVariant.images.map((imgFile, imgIdx) => {
+                            const previewUrl = URL.createObjectURL(imgFile);
+                            return (
+                              <div
+                                key={imgIdx}
+                                style={{
+                                  position: 'relative',
+                                  width: '64px',
+                                  height: '64px',
+                                  borderRadius: '6px',
+                                  overflow: 'hidden',
+                                  border: '1px solid #e4e4e7',
+                                  backgroundColor: '#f4f4f5'
+                                }}
+                              >
+                                <img
+                                  src={previewUrl}
+                                  alt={`preview ${imgIdx}`}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeImageFromVariant(colorVariant.id, imgIdx)}
+                                  title="Supprimer cette photo"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '18px',
+                                    height: '18px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: 0
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                                {colorIndex === 0 && imgIdx === 0 && (
+                                  <span
+                                    style={{
+                                      position: 'absolute',
+                                      bottom: '0',
+                                      left: '0',
+                                      right: '0',
+                                      backgroundColor: '#09090b',
+                                      color: '#ffffff',
+                                      fontSize: '8px',
+                                      fontWeight: 700,
+                                      textAlign: 'center',
+                                      padding: '1px 0'
+                                    }}
+                                  >
+                                    Principale
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -499,6 +572,98 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
           </button>
         </div>
 
+        {/* Optional: Photos Générales / Galerie Supplémentaire */}
+        <div
+          style={{
+            padding: '18px 20px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #e4e4e7',
+            borderRadius: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div>
+              <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#09090b' }}>
+                Photos générales du produit (optionnel)
+              </h4>
+              <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#71717a' }}>
+                Photos supplémentaires globales (lookbook, packaging, détails gros plan, etc.)
+              </p>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#71717a' }}>
+              {generalImages.length} photo{generalImages.length > 1 ? 's' : ''}
+            </span>
+          </div>
+
+          <input 
+            type="file" 
+            accept="image/*"
+            multiple
+            onChange={(e) => addGeneralImages(e.target.files)}
+            style={{
+              padding: '8px',
+              border: '1px dashed #d4d4d8',
+              borderRadius: '6px',
+              backgroundColor: '#fafafa',
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              width: '100%'
+            }} 
+          />
+
+          {generalImages.length > 0 && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
+              {generalImages.map((imgFile, imgIdx) => {
+                const previewUrl = URL.createObjectURL(imgFile);
+                return (
+                  <div
+                    key={imgIdx}
+                    style={{
+                      position: 'relative',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                      border: '1px solid #e4e4e7',
+                      backgroundColor: '#f4f4f5'
+                    }}
+                  >
+                    <img
+                      src={previewUrl}
+                      alt={`general ${imgIdx}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeGeneralImage(imgIdx)}
+                      title="Supprimer cette photo"
+                      style={{
+                        position: 'absolute',
+                        top: '2px',
+                        right: '2px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '18px',
+                        height: '18px',
+                        fontSize: '10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Submit */}
         <div style={{ marginTop: '8px' }}>
           <button
@@ -516,10 +681,30 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
               fontSize: '1rem',
               letterSpacing: '0.03em',
               transition: 'background-color 0.2s ease',
-              minHeight: '48px'
+              minHeight: '48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px'
             }}
           >
-            {isSubmitting ? 'Publication en cours...' : 'Enregistrer et publier le produit'}
+            {isSubmitting ? (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <line x1="12" y1="2" x2="12" y2="6" />
+                  <line x1="12" y1="18" x2="12" y2="22" />
+                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+                  <line x1="2" y1="12" x2="6" y2="12" />
+                  <line x1="18" y1="12" x2="22" y2="12" />
+                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
+                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+                </svg>
+                Téléversement et enregistrement en cours...
+              </>
+            ) : (
+              'Enregistrer et publier le produit'
+            )}
           </button>
         </div>
       </form>
