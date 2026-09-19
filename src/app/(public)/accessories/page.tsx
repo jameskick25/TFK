@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import CatalogClient from '../catalog/CatalogClient';
 import { getSectionForCategory } from '@/utils/sections';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Accessoires Téléphone — TFK Store',

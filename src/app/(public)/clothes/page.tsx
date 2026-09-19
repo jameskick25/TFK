@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import CatalogClient from '../catalog/CatalogClient';
 import { getSectionForCategory } from '@/utils/sections';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Collection Vêtements - TFK Store',
@@ -27,13 +27,19 @@ export default async function ClothesPage(props: { searchParams: Promise<{ filte
     .eq('is_active', true);
 
   // Filter for clothes universe
+  const accessoryCategoryIds = new Set(
+    (allCategories || [])
+      .filter((cat) => getSectionForCategory(cat.slug) === 'accessories')
+      .map((c) => c.id)
+  );
+  
   const categories = (allCategories || []).filter(
     (cat) => getSectionForCategory(cat.slug) === 'clothes'
   );
   
-  const categoryIds = new Set(categories.map(c => c.id));
+  // All products except explicit accessories
   const products = (allProducts || []).filter(
-    (p) => categoryIds.has(p.category_id)
+    (p) => !p.category_id || !accessoryCategoryIds.has(p.category_id)
   );
 
   return (

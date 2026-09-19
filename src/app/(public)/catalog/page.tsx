@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import CatalogClient from './CatalogClient';
 
-export const revalidate = 60; // Cache for 60s
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Produits — TFK Store',

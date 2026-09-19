@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { updateOrderStatus } from '@/app/actions/admin';
+import { useRouter } from 'next/navigation';
+import { updateOrderStatus, deleteOrder } from '@/app/actions/admin';
 
 interface OrderItem {
   id: string;
@@ -43,8 +44,10 @@ export default function OrderDetailsClient({
   order: Order;
   items: OrderItem[];
 }) {
+  const router = useRouter();
   const [currentStatus, setCurrentStatus] = useState(order.status || 'nouvelle');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const statusConfig = STATUS_OPTIONS.find(s => s.value === currentStatus) || STATUS_OPTIONS[0];
@@ -65,6 +68,25 @@ export default function OrderDetailsClient({
       alert('Erreur: ' + err.message);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const ok = window.confirm(`Voulez-vous vraiment supprimer définitivement la commande #${order.id.slice(0, 8)} (${order.customer_name}) ? Cette action est irréversible.`);
+    if (!ok) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await deleteOrder(order.id);
+      if (res.success) {
+        router.push('/admin/orders');
+      } else {
+        alert('Erreur: ' + (res.error || 'Impossible de supprimer la commande'));
+        setIsDeleting(false);
+      }
+    } catch (err: any) {
+      alert('Erreur: ' + err.message);
+      setIsDeleting(false);
     }
   };
 
@@ -94,8 +116,34 @@ export default function OrderDetailsClient({
           Retour aux commandes
         </Link>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
+            type="button"
+            disabled={isDeleting}
+            onClick={handleDelete}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              backgroundColor: '#fee2e2',
+              color: '#dc2626',
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              cursor: isDeleting ? 'wait' : 'pointer'
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            {isDeleting ? 'Suppression...' : 'Supprimer'}
+          </button>
+
+          <button
+            type="button"
             onClick={handlePrint}
             style={{
               display: 'inline-flex',

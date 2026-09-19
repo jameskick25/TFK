@@ -133,12 +133,21 @@ export async function createCategory(formData: FormData) {
       slug = `${slug}-${Math.floor(Math.random() * 1000)}`;
     }
 
+    // Calculate next display_order
+    const { data: maxCat } = await supabase
+      .from('categories')
+      .select('display_order')
+      .order('display_order', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const display_order = (maxCat?.display_order || 0) + 1;
+
     const { data, error } = await supabase
       .from('categories')
       .insert({
         name,
         slug,
-        display_order: 100
+        display_order
       })
       .select()
       .single();
@@ -542,5 +551,35 @@ export async function editExpense(id: string, amount: number) {
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };
+  }
+}
+
+export async function deleteOrder(orderId: string) {
+  try {
+    const supabase = await createAdminClient();
+    const id = orderId?.trim();
+    if (!id) {
+      return { success: false, error: 'ID de commande manquant' };
+    }
+
+    // 1. Delete items first
+    const { error: itemsError } = await supabase.from('order_items').delete().eq('order_id', id);
+    if (itemsError) {
+      console.error('Erreur suppression order_items:', itemsError);
+    }
+
+    // 2. Delete order
+    const { error: orderError } = await supabase.from('orders').delete().eq('id', id);
+    if (orderError) {
+      console.error('Erreur suppression commande:', orderError);
+      return { success: false, error: orderError.message };
+    }
+
+    revalidatePath('/admin/orders');
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (err: any) {
+    console.error('Erreur inattendue deleteOrder:', err);
+    return { success: false, error: err.message || 'Erreur serveur inattendue' };
   }
 }

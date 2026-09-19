@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { getSectionForCategory } from '@/utils/sections';
 import Link from 'next/link';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'TFK Store — Boutique de Vêtements en Ligne',
@@ -25,14 +25,19 @@ export default async function Home() {
     .eq('is_active', true);
 
   // Filter for clothes universe categories
+  const accessoryCategoryIds = new Set(
+    (allCategories || [])
+      .filter((cat) => getSectionForCategory(cat.slug) === 'accessories')
+      .map((c) => c.id)
+  );
+
   const categories = (allCategories || []).filter(
     (cat) => getSectionForCategory(cat.slug) === 'clothes'
   );
   
-  const categoryIds = new Set(categories.map(c => c.id));
-  // Filter for clothes products and limit to top 4 featured
+  // Filter for clothes products (all active clothing products) and limit to top 4 featured
   const featuredProducts = (allProducts || [])
-    .filter((p) => categoryIds.has(p.category_id))
+    .filter((p) => !p.category_id || !accessoryCategoryIds.has(p.category_id))
     .slice(0, 4);
 
   return (
