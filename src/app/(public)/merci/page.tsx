@@ -1,11 +1,24 @@
 'use client';
 
+import { Suspense, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import { trackPurchase } from '@/components/MetaPixel';
 
-export default function MerciPage() {
+function MerciContent() {
   const { language } = useLanguage();
   const isAr = language === 'ar';
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const total = searchParams.get('total');
+    if (total) {
+      trackPurchase(parseFloat(total), 'DZD');
+    } else {
+      trackPurchase(0, 'DZD');
+    }
+  }, [searchParams]);
 
   return (
     <section className="section" style={{ textAlign: 'center', padding: '100px 20px', minHeight: '60vh', direction: isAr ? 'rtl' : 'ltr' }}>
@@ -39,3 +52,12 @@ export default function MerciPage() {
     </section>
   );
 }
+
+export default function MerciPage() {
+  return (
+    <Suspense>
+      <MerciContent />
+    </Suspense>
+  );
+}
+

@@ -99,7 +99,7 @@ Total: ${orderTotal} DZD`;
   await sendTelegramNotification(msg);
 
   // Redirect to success page
-  redirect('/merci');
+  redirect(`/merci?total=${orderTotal}`);
 }
 
 
@@ -231,5 +231,5 @@ Total: ${orderTotal} DZD`;
   await sendTelegramNotification(msg);
 
   // Success!
-  return { success: true };
+  return { success: true, orderTotal };
 }

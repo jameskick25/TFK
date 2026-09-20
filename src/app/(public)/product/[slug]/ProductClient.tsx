@@ -155,7 +155,7 @@ export default function ProductClient({ product, variants }: { product: any, var
       setErrorMsg(res.error);
       setIsSubmitting(false);
     } else if (res?.success) {
-      router.push('/merci');
+      router.push(`/merci?total=${res.orderTotal || ''}`);
     }
   }
 

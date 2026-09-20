@@ -58,7 +58,7 @@ export default function CartPage() {
     } else {
       // Success — clear cart and redirect
       clearCart();
-      window.location.href = '/merci';
+      window.location.href = `/merci?total=${result.orderTotal || ''}`;
     }
   }
 

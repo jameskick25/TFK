@@ -150,7 +150,7 @@ export default function AccessoriesProductClient({ product, variants }: { produc
       setErrorMsg(res.error);
       setIsSubmitting(false);
     } else if (res?.success) {
-      router.push('/merci');
+      router.push(`/merci?total=${res.orderTotal || ''}`);
     }
   }
 

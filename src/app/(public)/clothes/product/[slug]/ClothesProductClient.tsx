@@ -151,7 +151,7 @@ export default function ClothesProductClient({ product, variants }: { product: a
       setErrorMsg(res.error);
       setIsSubmitting(false);
     } else if (res?.success) {
-      router.push('/merci');
+      router.push(`/merci?total=${res.orderTotal || ''}`);
     }
   }
 
