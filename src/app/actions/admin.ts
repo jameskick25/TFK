@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { isAccessoriesCategory } from '@/utils/sections';
 
 function generateSlug(text: string) {
   return text
@@ -177,6 +178,7 @@ export async function createCategory(formData: FormData) {
     const name = (formData.get('name') as string || '').trim();
     const customSlug = (formData.get('slug') as string || '').trim();
     const parentId = (formData.get('parent_id') as string || '').trim();
+    const section = (formData.get('section') as string || '').trim(); // 'clothes' | 'accessories'
     
     if (!name) {
       return { success: false, error: 'Le nom de la catégorie est obligatoire' };
@@ -184,6 +186,20 @@ export async function createCategory(formData: FormData) {
 
     let baseSlug = customSlug ? generateSlug(customSlug) : generateSlug(name);
     if (!baseSlug) baseSlug = 'cat-' + Math.floor(Math.random() * 10000);
+
+    // Si la section est explicitement spécifiée
+    if (section === 'accessories') {
+      if (!baseSlug.startsWith('acc--') && !isAccessoriesCategory(baseSlug)) {
+        baseSlug = `acc--${baseSlug}`;
+      }
+    } else if (section === 'clothes') {
+      if (baseSlug.startsWith('acc--')) {
+        baseSlug = baseSlug.replace(/^acc--/, '');
+      }
+      if (isAccessoriesCategory(baseSlug)) {
+        baseSlug = `cloth--${baseSlug}`;
+      }
+    }
 
     // If parent_id is specified, store hierarchy in slug as: sub--[parentId]--[baseSlug]
     let slug = parentId && parentId !== 'none' ? `sub--${parentId}--${baseSlug}` : baseSlug;
@@ -219,9 +235,13 @@ export async function createCategory(formData: FormData) {
     }
 
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/products');
     revalidatePath('/admin/products/new');
     revalidatePath('/catalog');
     revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
+    revalidatePath('/accessoires');
 
     return { success: true, category: data };
   } catch (err: any) {
@@ -237,6 +257,7 @@ export async function updateCategory(formData: FormData) {
     const name = (formData.get('name') as string || '').trim();
     const customSlug = (formData.get('slug') as string || '').trim();
     const parentId = (formData.get('parent_id') as string || '').trim();
+    const section = (formData.get('section') as string || '').trim(); // 'clothes' | 'accessories'
 
     if (!id || !name) {
       return { success: false, error: 'ID et nom de catégorie requis' };
@@ -244,6 +265,20 @@ export async function updateCategory(formData: FormData) {
 
     let baseSlug = customSlug ? generateSlug(customSlug) : generateSlug(name);
     if (!baseSlug) baseSlug = 'cat-' + id.slice(0, 6);
+
+    // Si la section est explicitement spécifiée
+    if (section === 'accessories') {
+      if (!baseSlug.startsWith('acc--') && !isAccessoriesCategory(baseSlug)) {
+        baseSlug = `acc--${baseSlug}`;
+      }
+    } else if (section === 'clothes') {
+      if (baseSlug.startsWith('acc--')) {
+        baseSlug = baseSlug.replace(/^acc--/, '');
+      }
+      if (isAccessoriesCategory(baseSlug)) {
+        baseSlug = `cloth--${baseSlug}`;
+      }
+    }
 
     let slug = parentId && parentId !== 'none' ? `sub--${parentId}--${baseSlug}` : baseSlug;
 
@@ -263,9 +298,13 @@ export async function updateCategory(formData: FormData) {
     }
 
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/products');
     revalidatePath('/admin/products/new');
     revalidatePath('/catalog');
     revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
+    revalidatePath('/accessoires');
 
     return { success: true, category: data };
   } catch (err: any) {
@@ -311,9 +350,13 @@ export async function deleteCategory(idOrFormData: FormData | string) {
     }
 
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/products');
     revalidatePath('/admin/products/new');
     revalidatePath('/catalog');
     revalidatePath('/');
+    revalidatePath('/clothes');
+    revalidatePath('/accessories');
+    revalidatePath('/accessoires');
 
     return { success: true };
   } catch (err: any) {

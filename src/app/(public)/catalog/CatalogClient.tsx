@@ -20,25 +20,31 @@ interface ParsedCategory extends Category {
 }
 
 function parseCategory(cat: Category): ParsedCategory {
+  let parentId: string | null = null;
+  let cleanSlug = cat.slug || '';
+  let isSub = false;
+
   if (cat.slug?.startsWith('sub--')) {
     const withoutPrefix = cat.slug.slice(5);
     const splitIndex = withoutPrefix.indexOf('--');
     if (splitIndex !== -1) {
-      const parentId = withoutPrefix.slice(0, splitIndex);
-      const cleanSlug = withoutPrefix.slice(splitIndex + 2);
-      return {
-        ...cat,
-        parentId,
-        cleanSlug,
-        isSub: true
-      };
+      parentId = withoutPrefix.slice(0, splitIndex);
+      cleanSlug = withoutPrefix.slice(splitIndex + 2);
+      isSub = true;
     }
   }
+
+  if (cleanSlug.startsWith('acc--')) {
+    cleanSlug = cleanSlug.replace(/^acc--/, '');
+  } else if (cleanSlug.startsWith('cloth--')) {
+    cleanSlug = cleanSlug.replace(/^cloth--/, '');
+  }
+
   return {
     ...cat,
-    parentId: null,
-    cleanSlug: cat.slug,
-    isSub: false
+    parentId,
+    cleanSlug,
+    isSub
   };
 }
 

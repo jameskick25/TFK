@@ -130,9 +130,12 @@ export default async function Home() {
           >
             Découvrez notre sélection de vêtements modernes conçus avec des tissus nobles et des finitions soignées pour vous garantir élégance et confort.
           </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-            <Link href="/clothes" className="btn btn-secondary btn-lg" style={{ color: '#fff', borderColor: '#fff', padding: '14px 40px', fontWeight: 700 }}>
-              Explorer le catalogue
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/clothes" className="btn btn-secondary btn-lg" style={{ color: '#fff', borderColor: '#fff', padding: '14px 32px', fontWeight: 700 }}>
+              Mode Vêtements
+            </Link>
+            <Link href="/accessories" className="btn btn-primary btn-lg" style={{ padding: '14px 32px', fontWeight: 700 }}>
+              Accessoires
             </Link>
           </div>
         </div>
@@ -223,9 +226,39 @@ export default async function Home() {
 
           <div style={{ textAlign: 'center', marginTop: '32px' }}>
             <Link href="/clothes" className="btn btn-secondary btn-lg" style={{ fontWeight: 700 }}>
-              Voir toute la collection
+              Voir toute la collection vêtements
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Univers Accessoires Showcase Banner */}
+      <section 
+        style={{ 
+          position: 'relative', 
+          padding: '70px 24px', 
+          backgroundImage: 'linear-gradient(rgba(9, 9, 11, 0.75), rgba(9, 9, 11, 0.85)), url("/images/accessories_universe.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: '#ffffff',
+          textAlign: 'center',
+          borderTop: '1px solid var(--border)',
+          borderBottom: '1px solid var(--border)'
+        }}
+      >
+        <div className="container" style={{ maxWidth: '750px' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--accent)', display: 'block', marginBottom: '12px' }}>
+            Nouveau Rayon
+          </span>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#ffffff', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-display)' }}>
+            L'Univers Accessoires
+          </h2>
+          <p style={{ fontSize: '1.05rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: '28px' }}>
+            Montres, casquettes, sacs, maroquinerie, bijoux ou high-tech : découvrez tous nos accessoires pour sublimer votre style au quotidien.
+          </p>
+          <Link href="/accessories" className="btn btn-secondary btn-lg" style={{ color: '#fff', borderColor: '#fff', padding: '14px 36px', fontWeight: 700 }}>
+            Explorer les accessoires
+          </Link>
         </div>
       </section>
 

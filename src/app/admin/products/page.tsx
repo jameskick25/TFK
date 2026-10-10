@@ -63,10 +63,16 @@ export default async function AdminProducts() {
               backgroundColor: '#ffffff',
               padding: '8px 14px',
               borderRadius: '20px',
-              border: '1px solid #e4e4e7'
+              border: '1px solid #e4e4e7',
+              display: 'flex',
+              gap: '8px'
             }}
           >
-            Total : <strong>{products?.length || 0}</strong> produit(s)
+            <span>Total : <strong>{products?.length || 0}</strong></span>
+            <span>•</span>
+            <span style={{ color: '#1e40af' }}>👗 <strong>{(products || []).filter(p => getSectionForCategory(p.categories?.slug) !== 'accessories').length}</strong> vêtements</span>
+            <span>•</span>
+            <span style={{ color: '#065f46' }}>🎒 <strong>{(products || []).filter(p => getSectionForCategory(p.categories?.slug) === 'accessories').length}</strong> accessoires</span>
           </div>
 
           <Link

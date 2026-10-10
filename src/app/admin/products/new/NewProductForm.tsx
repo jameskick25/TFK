@@ -318,14 +318,30 @@ export default function NewProductForm({ categories }: { categories: any[] }) {
               }}
             >
               <option value="">Sélectionnez une catégorie</option>
-              {categories?.map(cat => {
-                const isSub = cat.slug?.startsWith('sub--');
-                return (
-                  <option key={cat.id} value={cat.id}>
-                    {isSub ? `  ↳ ${cat.name}` : cat.name} ({getSectionForCategory(cat.slug) === 'accessories' ? 'Accessoires' : 'Vêtements'})
-                  </option>
-                );
-              })}
+              <optgroup label="🎒 Rayon Accessoires">
+                {categories
+                  ?.filter(cat => getSectionForCategory(cat.slug) === 'accessories')
+                  .map(cat => {
+                    const isSub = cat.slug?.startsWith('sub--');
+                    return (
+                      <option key={cat.id} value={cat.id}>
+                        {isSub ? `  ↳ ${cat.name}` : cat.name}
+                      </option>
+                    );
+                  })}
+              </optgroup>
+              <optgroup label="👗 Rayon Vêtements">
+                {categories
+                  ?.filter(cat => getSectionForCategory(cat.slug) !== 'accessories')
+                  .map(cat => {
+                    const isSub = cat.slug?.startsWith('sub--');
+                    return (
+                      <option key={cat.id} value={cat.id}>
+                        {isSub ? `  ↳ ${cat.name}` : cat.name}
+                      </option>
+                    );
+                  })}
+              </optgroup>
             </select>
           </div>
         </div>

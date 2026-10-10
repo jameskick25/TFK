@@ -3,6 +3,8 @@ export const translations = {
     // Navigation
     home: "Accueil",
     products: "Produits",
+    clothes: "Vêtements",
+    accessories: "Accessoires",
     about: "À propos",
     delivery_returns: "Livraison & Retours",
     size_guide: "Guide des tailles",
@@ -64,6 +66,8 @@ export const translations = {
     // Navigation
     home: "الرئيسية",
     products: "المنتجات",
+    clothes: "ملابس",
+    accessories: "إكسسوارات",
     about: "من نحن",
     delivery_returns: "التوصيل والاسترجاع",
     size_guide: "دليل المقاسات",

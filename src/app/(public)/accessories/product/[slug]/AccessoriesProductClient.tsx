@@ -171,7 +171,7 @@ export default function AccessoriesProductClient({ product, variants }: { produc
       {/* Breadcrumbs */}
       <div style={{ marginBottom: '10px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
         <span style={{ cursor: 'pointer' }} onClick={() => router.push('/')}>TFK Store</span> &gt;{' '}
-        <span style={{ cursor: 'pointer' }} onClick={() => router.push('/accessories')}>Accessoires Téléphone</span> &gt;{' '}
+        <span style={{ cursor: 'pointer' }} onClick={() => router.push('/accessories')}>{language === 'ar' ? 'إكسسوارات' : 'Accessoires'}</span> &gt;{' '}
         <span style={{ fontWeight: 600, color: 'var(--text)' }}>{product.name}</span>
       </div>
 
@@ -325,7 +325,9 @@ export default function AccessoriesProductClient({ product, variants }: { produc
                   {uniqueModels.length > 0 && (
                     <div style={{ marginTop: '12px' }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 500 }}>
-                        {uniqueModels.length === 1 && uniqueModels[0] === 'Unique' ? 'Taille / Compatibilité :' : 'Modèle de téléphone :'}
+                        {uniqueModels.length === 1 && uniqueModels[0] === 'Unique'
+                          ? (language === 'ar' ? 'المقاس / الخيار :' : 'Taille / Option :')
+                          : (language === 'ar' ? 'الموديل / المقاس :' : 'Modèle / Taille :')}
                       </div>
                       <div className="option-selectors">
                         {uniqueModels.map(s => {

@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { createCategory, updateCategory, deleteCategory } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
+import { getSectionForCategory, isAccessoriesCategory } from '@/utils/sections';
 
 interface Category {
   id: string;
@@ -16,28 +17,39 @@ interface ParsedCategory extends Category {
   parentId: string | null;
   cleanSlug: string;
   isSub: boolean;
+  section: 'clothes' | 'accessories';
 }
 
 function parseCategory(cat: Category): ParsedCategory {
+  let parentId: string | null = null;
+  let cleanSlug = cat.slug || '';
+  let isSub = false;
+
   if (cat.slug?.startsWith('sub--')) {
     const withoutPrefix = cat.slug.slice(5);
     const splitIndex = withoutPrefix.indexOf('--');
     if (splitIndex !== -1) {
-      const parentId = withoutPrefix.slice(0, splitIndex);
-      const cleanSlug = withoutPrefix.slice(splitIndex + 2);
-      return {
-        ...cat,
-        parentId,
-        cleanSlug,
-        isSub: true
-      };
+      parentId = withoutPrefix.slice(0, splitIndex);
+      cleanSlug = withoutPrefix.slice(splitIndex + 2);
+      isSub = true;
     }
   }
+
+  // Nettoyer les préfixes explicites d'univers pour l'affichage
+  if (cleanSlug.startsWith('acc--')) {
+    cleanSlug = cleanSlug.replace(/^acc--/, '');
+  } else if (cleanSlug.startsWith('cloth--')) {
+    cleanSlug = cleanSlug.replace(/^cloth--/, '');
+  }
+
+  const section = getSectionForCategory(cat.slug);
+
   return {
     ...cat,
-    parentId: null,
-    cleanSlug: cat.slug,
-    isSub: false
+    parentId,
+    cleanSlug,
+    isSub,
+    section
   };
 }
 
@@ -55,14 +67,20 @@ export default function CategoriesClient({
   const [nameInput, setNameInput] = useState('');
   const [slugInput, setSlugInput] = useState('');
   const [parentInput, setParentInput] = useState('none');
+  const [sectionInput, setSectionInput] = useState<'clothes' | 'accessories'>('clothes');
+  const [userTouchedSection, setUserTouchedSection] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Filter state for category list
+  const [activeTab, setActiveTab] = useState<'all' | 'clothes' | 'accessories'>('all');
 
   // Edit modal state
   const [editingCategory, setEditingCategory] = useState<ParsedCategory | null>(null);
   const [editName, setEditName] = useState('');
   const [editSlug, setEditSlug] = useState('');
   const [editParentId, setEditParentId] = useState('none');
+  const [editSection, setEditSection] = useState<'clothes' | 'accessories'>('clothes');
   const [editLoading, setEditLoading] = useState(false);
 
   // Delete state
@@ -104,6 +122,20 @@ export default function CategoriesClient({
     return list;
   }, [parsedCategories]);
 
+  // Filtered list based on active tab
+  const filteredList = useMemo(() => {
+    if (activeTab === 'all') return orderedList;
+    return orderedList.filter(item => item.category.section === activeTab);
+  }, [orderedList, activeTab]);
+
+  const clothesCount = useMemo(() => {
+    return orderedList.filter(item => item.category.section === 'clothes').length;
+  }, [orderedList]);
+
+  const accessoriesCount = useMemo(() => {
+    return orderedList.filter(item => item.category.section === 'accessories').length;
+  }, [orderedList]);
+
   const handleNameChange = (val: string) => {
     setNameInput(val);
     const generated = val
@@ -113,6 +145,15 @@ export default function CategoriesClient({
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
     setSlugInput(generated);
+
+    // Si l'utilisateur n'a pas encore choisi manuellement l'univers, auto-détecter
+    if (!userTouchedSection && val.trim().length > 1) {
+      if (isAccessoriesCategory(generated)) {
+        setSectionInput('accessories');
+      } else {
+        setSectionInput('clothes');
+      }
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -125,6 +166,7 @@ export default function CategoriesClient({
     const formData = new FormData();
     formData.append('name', nameInput.trim());
     formData.append('slug', slugInput.trim());
+    formData.append('section', sectionInput);
     if (parentInput !== 'none') {
       formData.append('parent_id', parentInput);
     }
@@ -136,7 +178,8 @@ export default function CategoriesClient({
         setNameInput('');
         setSlugInput('');
         setParentInput('none');
-        setFeedback({ type: 'success', message: `Catégorie "${res.category.name}" ajoutée avec succès.` });
+        setUserTouchedSection(false);
+        setFeedback({ type: 'success', message: `Catégorie "${res.category.name}" (${sectionInput === 'accessories' ? 'Accessoires' : 'Vêtements'}) ajoutée avec succès.` });
         router.refresh();
       } else {
         setFeedback({ type: 'error', message: res?.error || 'Erreur lors de la création de la catégorie.' });
@@ -154,6 +197,7 @@ export default function CategoriesClient({
     setEditName(cat.name);
     setEditSlug(cat.cleanSlug);
     setEditParentId(cat.parentId || 'none');
+    setEditSection(cat.section);
     setFeedback(null);
   };
 
@@ -175,6 +219,7 @@ export default function CategoriesClient({
     formData.append('id', editingCategory.id);
     formData.append('name', editName.trim());
     formData.append('slug', editSlug.trim());
+    formData.append('section', editSection);
     if (editParentId !== 'none') {
       formData.append('parent_id', editParentId);
     }
@@ -254,10 +299,10 @@ export default function CategoriesClient({
             letterSpacing: '-0.02em'
           }}
         >
-          Gestion des Catégories & Sous-Catégories
+          Gestion des Catégories (Vêtements & Accessoires)
         </h1>
         <p style={{ color: '#71717a', fontSize: '0.92rem', marginTop: '6px' }}>
-          Organisez votre catalogue avec des catégories principales et des sous-catégories associées.
+          Organisez les rayons de votre boutique : mode vêtements et univers accessoires (maroquinerie, bijoux, high-tech, casquettes...).
         </p>
       </div>
 
@@ -287,7 +332,7 @@ export default function CategoriesClient({
         </div>
       )}
 
-      {/* Formulaire d'ajout responsive avec sous-catégorie */}
+      {/* Formulaire d'ajout responsive */}
       <div
         style={{
           backgroundColor: '#ffffff',
@@ -299,20 +344,21 @@ export default function CategoriesClient({
         }}
       >
         <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#09090b', marginBottom: '16px', marginTop: 0 }}>
-          Ajouter une catégorie ou sous-catégorie
+          Ajouter une nouvelle catégorie
         </h2>
         <form onSubmit={handleCreate}>
           <div className="admin-form-row" style={{ display: 'flex', gap: '14px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1.5, minWidth: '200px' }}>
+            {/* Nom */}
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1.5, minWidth: '180px' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
-                Nom *
+                Nom de la catégorie *
               </label>
               <input
                 type="text"
                 required
                 value={nameInput}
                 onChange={e => handleNameChange(e.target.value)}
-                placeholder="Ex: T-Shirts, Baskets, Casquettes..."
+                placeholder="Ex: Montres, Casquettes, T-Shirts..."
                 style={{
                   padding: '10px 14px',
                   borderRadius: '8px',
@@ -324,7 +370,36 @@ export default function CategoriesClient({
               />
             </div>
 
-            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1.5, minWidth: '200px' }}>
+            {/* Univers / Rayon */}
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1.2, minWidth: '170px' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
+                Rayon / Univers *
+              </label>
+              <select
+                value={sectionInput}
+                onChange={e => {
+                  setSectionInput(e.target.value as 'clothes' | 'accessories');
+                  setUserTouchedSection(true);
+                }}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #d4d4d8',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  backgroundColor: '#ffffff',
+                  height: '44px',
+                  fontWeight: 600,
+                  color: sectionInput === 'accessories' ? '#065f46' : '#1e40af'
+                }}
+              >
+                <option value="clothes">👗 Vêtements</option>
+                <option value="accessories">🎒 Accessoires</option>
+              </select>
+            </div>
+
+            {/* Catégorie parente */}
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1.5, minWidth: '180px' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
                 Type / Catégorie Parente
               </label>
@@ -344,13 +419,14 @@ export default function CategoriesClient({
                 <option value="none">-- Aucune (Catégorie Principale) --</option>
                 {parentCategories.map(p => (
                   <option key={p.id} value={p.id}>
-                    Sous-catégorie de : {p.name}
+                    Sous-catégorie de : {p.name} ({p.section === 'accessories' ? 'Accessoires' : 'Vêtements'})
                   </option>
                 ))}
               </select>
             </div>
 
-            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '160px' }}>
+            {/* Slug URL */}
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '140px' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3f3f46' }}>
                 Slug URL
               </label>
@@ -359,7 +435,7 @@ export default function CategoriesClient({
                 required
                 value={slugInput}
                 onChange={e => setSlugInput(e.target.value)}
-                placeholder="ex: baskets"
+                placeholder="ex: montres"
                 style={{
                   padding: '10px 14px',
                   borderRadius: '8px',
@@ -372,6 +448,7 @@ export default function CategoriesClient({
               />
             </div>
 
+            {/* Bouton Ajouter */}
             <div className="admin-form-col" style={{ minWidth: '130px' }}>
               <button
                 type="submit"
@@ -450,6 +527,29 @@ export default function CategoriesClient({
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
+                  Rayon / Univers *
+                </label>
+                <select
+                  value={editSection}
+                  onChange={e => setEditSection(e.target.value as 'clothes' | 'accessories')}
+                  style={{ 
+                    padding: '10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #d4d4d8', 
+                    fontSize: '0.95rem', 
+                    backgroundColor: '#ffffff', 
+                    height: '44px',
+                    fontWeight: 600,
+                    color: editSection === 'accessories' ? '#065f46' : '#1e40af'
+                  }}
+                >
+                  <option value="clothes">👗 Vêtements</option>
+                  <option value="accessories">🎒 Accessoires</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3f3f46' }}>
                   Catégorie Parente
                 </label>
                 <select
@@ -462,7 +562,7 @@ export default function CategoriesClient({
                     .filter(p => p.id !== editingCategory.id)
                     .map(p => (
                       <option key={p.id} value={p.id}>
-                        Sous-catégorie de : {p.name}
+                        Sous-catégorie de : {p.name} ({p.section === 'accessories' ? 'Accessoires' : 'Vêtements'})
                       </option>
                     ))}
                 </select>
@@ -501,20 +601,77 @@ export default function CategoriesClient({
         </div>
       )}
 
+      {/* Onglets de filtrage par Univers */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('all')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '20px',
+            border: activeTab === 'all' ? '1px solid #09090b' : '1px solid #e4e4e7',
+            backgroundColor: activeTab === 'all' ? '#09090b' : '#ffffff',
+            color: activeTab === 'all' ? '#ffffff' : '#52525b',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          Toutes ({orderedList.length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('clothes')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '20px',
+            border: activeTab === 'clothes' ? '1px solid #1e40af' : '1px solid #e4e4e7',
+            backgroundColor: activeTab === 'clothes' ? '#eff6ff' : '#ffffff',
+            color: activeTab === 'clothes' ? '#1e40af' : '#52525b',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          👗 Vêtements ({clothesCount})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('accessories')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '20px',
+            border: activeTab === 'accessories' ? '1px solid #065f46' : '1px solid #e4e4e7',
+            backgroundColor: activeTab === 'accessories' ? '#ecfdf5' : '#ffffff',
+            color: activeTab === 'accessories' ? '#065f46' : '#52525b',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          🎒 Accessoires ({accessoriesCount})
+        </button>
+      </div>
+
       {/* ── MOBILE CARDS VIEW (< 768px) ── */}
       <div className="admin-mobile-view" style={{ display: 'none', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#09090b' }}>
-            Structure du catalogue ({orderedList.length})
+            Structure du catalogue ({filteredList.length})
           </span>
         </div>
 
-        {orderedList.length === 0 ? (
+        {filteredList.length === 0 ? (
           <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '24px', textAlign: 'center', color: '#71717a', border: '1px solid #e4e4e7' }}>
-            Aucune catégorie enregistrée.
+            Aucune catégorie dans ce rayon.
           </div>
         ) : (
-          orderedList.map(({ category: cat, isSub, parentName }) => {
+          filteredList.map(({ category: cat, isSub, parentName }) => {
             const pCount = productCounts[cat.id] || 0;
             const isDeleting = deletingId === cat.id;
 
@@ -530,7 +687,7 @@ export default function CategoriesClient({
                   boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: isSub ? 600 : 800, color: '#09090b' }}>
                       {isSub ? `↳ ${cat.name}` : cat.name}
@@ -540,18 +697,34 @@ export default function CategoriesClient({
                     </code>
                   </div>
 
-                  <span
-                    style={{
-                      fontSize: '0.7rem',
-                      padding: '3px 8px',
-                      borderRadius: '4px',
-                      backgroundColor: isSub ? '#e0f2fe' : '#f4f4f5',
-                      color: isSub ? '#0369a1' : '#3f3f46',
-                      fontWeight: 600
-                    }}
-                  >
-                    {isSub ? `Sous-catégorie (${parentName})` : 'Catégorie Principale'}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                    <span
+                      style={{
+                        fontSize: '0.7rem',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: cat.section === 'accessories' ? '#ecfdf5' : '#eff6ff',
+                        color: cat.section === 'accessories' ? '#065f46' : '#1e40af',
+                        fontWeight: 700
+                      }}
+                    >
+                      {cat.section === 'accessories' ? '🎒 Accessoires' : '👗 Vêtements'}
+                    </span>
+
+                    <span
+                      style={{
+                        fontSize: '0.68rem',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        backgroundColor: isSub ? '#f4f4f5' : '#ffffff',
+                        color: '#71717a',
+                        fontWeight: 500,
+                        border: '1px solid #e4e4e7'
+                      }}
+                    >
+                      {isSub ? `Sous-catégorie (${parentName})` : 'Principale'}
+                    </span>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #f4f4f5' }}>
@@ -612,7 +785,7 @@ export default function CategoriesClient({
       >
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #f4f4f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#09090b' }}>
-            Structure du catalogue ({orderedList.length})
+            Structure du catalogue ({filteredList.length})
           </h3>
         </div>
 
@@ -620,6 +793,7 @@ export default function CategoriesClient({
           <thead>
             <tr style={{ backgroundColor: '#fafafa', borderBottom: '1px solid #e4e4e7' }}>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nom</th>
+              <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rayon / Univers</th>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</th>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Slug URL</th>
               <th style={{ padding: '14px 20px', color: '#71717a', fontWeight: 600, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Produits</th>
@@ -627,14 +801,14 @@ export default function CategoriesClient({
             </tr>
           </thead>
           <tbody>
-            {orderedList.length === 0 ? (
+            {filteredList.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '32px 24px', textAlign: 'center', color: '#71717a' }}>
-                  Aucune catégorie enregistrée.
+                <td colSpan={6} style={{ padding: '32px 24px', textAlign: 'center', color: '#71717a' }}>
+                  Aucune catégorie trouvée dans ce rayon.
                 </td>
               </tr>
             ) : (
-              orderedList.map(({ category: cat, isSub, parentName }) => {
+              filteredList.map(({ category: cat, isSub, parentName }) => {
                 const pCount = productCounts[cat.id] || 0;
                 const isDeleting = deletingId === cat.id;
 
@@ -652,12 +826,28 @@ export default function CategoriesClient({
                           fontSize: '0.75rem',
                           padding: '3px 10px',
                           borderRadius: '4px',
-                          backgroundColor: isSub ? '#e0f2fe' : '#f4f4f5',
-                          color: isSub ? '#0369a1' : '#3f3f46',
-                          fontWeight: 600
+                          backgroundColor: cat.section === 'accessories' ? '#ecfdf5' : '#eff6ff',
+                          color: cat.section === 'accessories' ? '#065f46' : '#1e40af',
+                          fontWeight: 700
                         }}
                       >
-                        {isSub ? `Sous-catégorie (${parentName})` : 'Catégorie Principale'}
+                        {cat.section === 'accessories' ? '🎒 Accessoires' : '👗 Vêtements'}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '14px 20px' }}>
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '3px 10px',
+                          borderRadius: '4px',
+                          backgroundColor: isSub ? '#f4f4f5' : '#fafafa',
+                          color: '#3f3f46',
+                          fontWeight: 600,
+                          border: '1px solid #e4e4e7'
+                        }}
+                      >
+                        {isSub ? `Sous-catégorie (${parentName})` : 'Principale'}
                       </span>
                     </td>
 
@@ -678,12 +868,12 @@ export default function CategoriesClient({
                         <button
                           onClick={() => startEdit(cat)}
                           style={{
-                            background: '#fff',
+                            background: '#ffffff',
                             border: '1px solid #d4d4d8',
                             color: '#09090b',
-                            padding: '5px 12px',
+                            padding: '6px 12px',
                             borderRadius: '6px',
-                            fontSize: '0.82rem',
+                            fontSize: '0.8rem',
                             fontWeight: 600,
                             cursor: 'pointer'
                           }}
@@ -694,12 +884,12 @@ export default function CategoriesClient({
                           onClick={() => handleDelete(cat)}
                           disabled={isDeleting}
                           style={{
-                            background: '#fff',
+                            background: '#ffffff',
                             border: '1px solid #fecaca',
                             color: '#dc2626',
-                            padding: '5px 12px',
+                            padding: '6px 12px',
                             borderRadius: '6px',
-                            fontSize: '0.82rem',
+                            fontSize: '0.8rem',
                             fontWeight: 600,
                             cursor: isDeleting ? 'not-allowed' : 'pointer'
                           }}

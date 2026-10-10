@@ -5,11 +5,13 @@ import { getSectionForCategory } from '@/utils/sections';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Accessoires Téléphone — TFK Store',
-  description: 'Optimisez votre smartphone avec les accessoires TFK Store : coques de protection premium, chargeurs rapides, câbles renforcés et plus.',
+  title: 'Collection Accessoires — TFK Store',
+  description: 'Découvrez toute notre collection d\'accessoires chez TFK Store : maroquinerie, bijoux, montres, casquettes, high-tech et indispensables du quotidien.',
 };
 
-export default async function AccessoriesPage() {
+export default async function AccessoriesPage(props: { searchParams: Promise<{ filter?: string }> }) {
+  const resolvedSearchParams = await props.searchParams;
+  const initialFilter = resolvedSearchParams?.filter || 'all';
   const supabase = await createClient();
 
   // Fetch categories
@@ -36,13 +38,27 @@ export default async function AccessoriesPage() {
 
   return (
     <>
-      <div className="hero-banner" style={{ background: 'linear-gradient(rgba(10,10,11,0.85), rgba(10,10,11,0.95)), url("/images/accessories_universe.png")', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <h1 className="hero-banner-title">Accessoires Téléphone</h1>
-        <p className="hero-banner-desc">
-          Protégez et optimisez vos smartphones avec nos coques de protection élégantes et accessoires de charge rapide.
-        </p>
+      <div 
+        className="hero-banner" 
+        style={{ 
+          background: 'linear-gradient(rgba(10,10,11,0.7), rgba(10,10,11,0.9)), url("/images/accessories_universe.png")', 
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center',
+          minHeight: '220px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center'
+        }}
+      >
+        <div style={{ maxWidth: '750px', padding: '0 20px' }}>
+          <h1 className="hero-banner-title">Collection Accessoires</h1>
+          <p className="hero-banner-desc">
+            Sublimez votre style avec nos accessoires soigneusement sélectionnés : maroquinerie, bijoux, montres, casquettes, high-tech et indispensables du quotidien.
+          </p>
+        </div>
       </div>
-      <CatalogClient categories={categories} products={products} />
+      <CatalogClient categories={categories} products={products} initialFilter={initialFilter} />
     </>
   );
 }
