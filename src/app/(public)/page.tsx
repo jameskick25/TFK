@@ -12,6 +12,29 @@ export const metadata = {
 const getCategoryMenImage = (name: string = '', slug: string = '', index: number = 0) => {
   const text = `${name} ${slug}`.toLowerCase();
 
+  // T-shirts / Polos / Hauts
+  if (text.includes('t-shirt') || text.includes('tshirt') || text.includes('polo') || text.includes('haut')) {
+    return '/images/category_tshirt.jpg';
+  }
+  // Accessoires / Téléphone / Coques / High-Tech
+  if (
+    text.includes('accessoire') || 
+    text.includes('accecoire') || 
+    text.includes('accessory') || 
+    text.includes('accessories') || 
+    text.includes('phone') || 
+    text.includes('tel') || 
+    text.includes('coque') || 
+    text.includes('chargeur') || 
+    text.includes('ecouteur') || 
+    text.includes('airpod') || 
+    text.includes('montre') || 
+    text.includes('casquette') || 
+    text.includes('sac') || 
+    text.includes('lunette')
+  ) {
+    return '/images/category_accessories.jpg';
+  }
   // Baskets / Chaussures / Sneakers
   if (text.includes('basket') || text.includes('chaussure') || text.includes('sneaker') || text.includes('shoe')) {
     return 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop';
@@ -19,10 +42,6 @@ const getCategoryMenImage = (name: string = '', slug: string = '', index: number
   // Sweats / Hoodies / Pulls
   if (text.includes('sweat') || text.includes('hoodie') || text.includes('pull')) {
     return 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=800&auto=format&fit=crop';
-  }
-  // T-shirts / Polos / Hauts
-  if (text.includes('t-shirt') || text.includes('tshirt') || text.includes('polo') || text.includes('haut')) {
-    return 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=800&auto=format&fit=crop';
   }
   // Pantalons / Jeans / Jogging / Bas
   if (text.includes('pantalon') || text.includes('jean') || text.includes('jogging') || text.includes('bas')) {
@@ -32,23 +51,19 @@ const getCategoryMenImage = (name: string = '', slug: string = '', index: number
   if (text.includes('veste') || text.includes('manteau') || text.includes('blouson') || text.includes('ensemble') || text.includes('jacket')) {
     return 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop';
   }
-  // Accessoires / Montres / Casquettes / Sacs
-  if (text.includes('accessoire') || text.includes('montre') || text.includes('casquette') || text.includes('sac') || text.includes('lunette')) {
-    return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop';
-  }
   // Costumes / Chemises
   if (text.includes('costume') || text.includes('chemise')) {
     return 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop';
   }
 
-  // Fallbacks de mode masculine
-  const menFashionFallbacks = [
-    'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop',
+  // Fallbacks de collections
+  const fashionFallbacks = [
+    '/images/category_tshirt.jpg',
+    '/images/category_accessories.jpg',
     'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop',
   ];
-  return menFashionFallbacks[index % menFashionFallbacks.length];
+  return fashionFallbacks[index % fashionFallbacks.length];
 };
 
 export default async function Home() {
@@ -69,13 +84,18 @@ export default async function Home() {
   // Filter for clothes universe categories
   const accessoryCategoryIds = new Set(
     (allCategories || [])
-      .filter((cat) => getSectionForCategory(cat.slug) === 'accessories')
+      .filter((cat) => getSectionForCategory(cat.slug) === 'accessories' || cat.slug?.toLowerCase().includes('acc'))
       .map((c) => c.id)
   );
 
   const categories = (allCategories || []).filter(
-    (cat) => getSectionForCategory(cat.slug) === 'clothes'
+    (cat) => getSectionForCategory(cat.slug) === 'clothes' && !cat.slug?.toLowerCase().includes('acc')
   );
+
+  // Featured categories for Home display (prioritizes active categories across the boutique)
+  const homeCategories = (allCategories && allCategories.length > 0)
+    ? allCategories.slice(0, 3)
+    : categories.slice(0, 3);
   
   // Filter for clothes products (all active clothing products) and limit to top 4 featured
   const featuredProducts = (allProducts || [])
@@ -149,13 +169,15 @@ export default async function Home() {
           <h2 className="section-title" style={{ marginBottom: '40px', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '1.8rem' }}>Catégories à la une</h2>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-            {categories.slice(0, 3).map((cat, i) => {
+            {homeCategories.map((cat, i) => {
               const bgImg = cat.image_url || getCategoryMenImage(cat.name, cat.slug, i);
+              const isAccessory = getSectionForCategory(cat.slug) === 'accessories' || cat.slug?.toLowerCase().includes('acc');
+              const categoryHref = isAccessory ? '/accessories' : `/clothes?filter=${cat.slug}`;
               
               return (
                 <Link 
                   key={cat.id} 
-                  href={`/clothes?filter=${cat.slug}`}
+                  href={categoryHref}
                   style={{ 
                     position: 'relative', 
                     height: '420px', 
@@ -237,7 +259,7 @@ export default async function Home() {
         style={{ 
           position: 'relative', 
           padding: '70px 24px', 
-          backgroundImage: 'linear-gradient(rgba(9, 9, 11, 0.75), rgba(9, 9, 11, 0.85)), url("/images/accessories_universe.png")',
+          backgroundImage: 'linear-gradient(rgba(9, 9, 11, 0.75), rgba(9, 9, 11, 0.85)), url("/images/category_accessories.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: '#ffffff',

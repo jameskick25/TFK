@@ -27,6 +27,8 @@ export const ACCESSORIES_SLUGS = [
   // Termes généraux
   'accessoire',
   'accessoires',
+  'accecoire',
+  'accecoires',
   'accessory',
   'accessories',
   
